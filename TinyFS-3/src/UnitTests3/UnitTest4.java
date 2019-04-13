@@ -23,19 +23,19 @@ public class UnitTest4 {
 	public static void main(String[] args) {
 		String dir1 = "Shahram";
 		ClientFS cfs = new ClientFS();
-		FSReturnVals fsrv = cfs.CreateDir(ClientFS.root + "/", dir1);
+		FSReturnVals fsrv = cfs.CreateDir("/", dir1);
 		if ( fsrv != FSReturnVals.Success ){
 			System.out.println("Unit test 4 result: fail!");
     		return;
 		}
-		fsrv = cfs.CreateFile(ClientFS.root + "/" + dir1 + "/", "emp");
+		fsrv = cfs.CreateFile("/" + dir1 + "/", "emp");
 		if( fsrv != FSReturnVals.Success ){
 			System.out.println("Unit test 4 result: fail!");
     		return;
 		}
 		//get the file handle first
 		FileHandle fh = new FileHandle();
-		FSReturnVals ofd = cfs.OpenFile(ClientFS.root + "/" + dir1 + "/emp", fh);
+		FSReturnVals ofd = cfs.OpenFile("/" + dir1 + "/emp", fh);
 		//assemble the file handle in cfs.OpenFile
 		byte[] payload = null;
 		int intSize = Integer.SIZE / Byte.SIZE;	// 4 bytes

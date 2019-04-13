@@ -28,10 +28,10 @@ public class UnitTest2 {
 		//delete root/Shahram/N
 		System.out.println(TestName + "DeleteDir(\"/Shahram/N\"), ListDir(\"/Shahram\") and verify directory N is gone (success)");
 		String dir1 = "Shahram";
-		FSReturnVals fsrv = cfs.DeleteDir(ClientFS.root + "/" + dir1 + "/", String.valueOf(N));
+		FSReturnVals fsrv = cfs.DeleteDir("/" + dir1 + "/", String.valueOf(N));
 		String[] ret1 = cfs.ListDir("/" + dir1);
 		
-		boolean isExist = isDirExist(ret1, ClientFS.root +  "/" + dir1+"/"+N);
+		boolean isExist = isDirExist(ret1, "/" + dir1+"/"+N);
 		if(isExist == true){
 			System.out.println("Unit test 2 result: fail!1");
     		return;
@@ -46,7 +46,7 @@ public class UnitTest2 {
 		for(int i = 1; i < N; i++){
 			lastSec = lastSec + "/" + i;
 		}
-		fsrv = cfs.DeleteDir(ClientFS.root + lastSec + "/", String.valueOf(N));
+		fsrv = cfs.DeleteDir(lastSec + "/", String.valueOf(N));
 		
 		String[] ret2 = cfs.ListDir(lastSec);
 		isExist = isDirExist(ret2, lastSec + "/" + N);
@@ -61,7 +61,7 @@ public class UnitTest2 {
 		
 		//Delete Shahram, fails b/c dir is not empty
 		System.out.println(TestName + "DeleteDir(\"/Shahram\") and verify it return the correct failure code");
-		fsrv = cfs.DeleteDir(ClientFS.root + "/", dir1);
+		fsrv = cfs.DeleteDir("/", dir1);
 		if(fsrv == FSReturnVals.DirNotEmpty){
 			System.out.println("Good! Detected " + dir1 + " exists.");
 		} else {
@@ -75,7 +75,7 @@ public class UnitTest2 {
 		
 		//Delete root/Ghan.../1/2, fails
 		System.out.println(TestName + "DeleteDir(\"/Ghandeharizadeh/1/2\") and verify it returns the correct failure code");
-		fsrv = cfs.DeleteDir(ClientFS.root + "/" + dir2 + "/1/", "2");
+		fsrv = cfs.DeleteDir("/" + dir2 + "/1/", "2");
 		if(fsrv == FSReturnVals.DirNotEmpty){
 			System.out.println("Good!  Detected /" + dir2 + "/1/2 exists.");
 		} else {
@@ -88,7 +88,7 @@ public class UnitTest2 {
 		
 		System.out.println(TestName + "RenameDir(\"/Shahram/i\", \"/Shahram/1i\") for i from 1 to N-1.  ListDir(\"/Shahram\") and verify the N-1 returns dirs are 1i to (N-1)i");
 		for(int i = 1; i < N; i++){
-			fsrv = cfs.RenameDir(ClientFS.root + "/" + dir1 + "/" + i, ClientFS.root + "/" + dir1 + "/" + i + "i");
+			fsrv = cfs.RenameDir("/" + dir1 + "/" + i, "/" + dir1 + "/" + i + "i");
 			if( fsrv != FSReturnVals.Success){
 				System.out.println("Unit test 2 result: fail!5");
 	    		return;
@@ -99,7 +99,7 @@ public class UnitTest2 {
 		
 		
 		System.out.println(TestName + "RenameDir(\"/Ghandeharizadeh\", \"/ShahramGhandeharizadeh\")");
-		fsrv = cfs.RenameDir(ClientFS.root + "/" + dir2, ClientFS.root + "/ShahramGhandeharizadeh");
+		fsrv = cfs.RenameDir("/" + dir2, "/ShahramGhandeharizadeh");
 		if( fsrv != FSReturnVals.Success ){
 			System.out.println("Unit test 2 result: fail!6");
     		return;

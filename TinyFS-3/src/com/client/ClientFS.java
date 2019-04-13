@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class ClientFS {
 	
-	Master master = new Master();
+	private Master m = new Master();
 
 	public static final String root = "csci485";
 	
@@ -37,18 +37,7 @@ public class ClientFS {
 	 * "CSCI485"), CreateDir("/Shahram/CSCI485/", "Lecture1")
 	 */
 	public FSReturnVals CreateDir(String src, String dirname) {
-		File srcFile = new File(src);
-		if(!srcFile.exists()) return FSReturnVals.SrcDirNotExistent;
-		
-		//TODO: figure out how to write to /
-		//srcFile.setWritable(true, true);
-		//srcFile.setExecutable(true);
-		File dirFile = new File(src + dirname);
-		
-		if(dirFile.exists()) return FSReturnVals.DestDirExists;
-		dirFile.mkdir();
-		//System.out.println("Made dir: " + src + dirname);
-		return FSReturnVals.Success;
+		return m.masterCreateDir(src, dirname);
 	}
 
 	/**
@@ -56,23 +45,12 @@ public class ClientFS {
 	 * 
 	 * Returns SrcDirNotExistent if the src directory does not exist 
 	 * Returns DestDirExists if the specified dirname exists
-	 * -- Returns DirNotEmpty when a non empty directory is deleted
+	 * -- Returns DirNotEmpty when a non empty directory is deleted (attempted)
 	 *
 	 * Example usage: DeleteDir("/Shahram/CSCI485/", "Lecture1")
 	 */
 	public FSReturnVals DeleteDir(String src, String dirname) {
-		//if src file does not exist return
-		if(!(new File(src)).exists()) return FSReturnVals.SrcDirNotExistent;
-
-		File dirFile = new File(src + dirname);		
-		if(!dirFile.exists()) return null; //not sure what to return if dirname doesn't exist
-		
-		int numFilesInDir = dirFile.list().length;
-		if(numFilesInDir > 0) return FSReturnVals.DirNotEmpty;
-
-		boolean fileIsDeleted = dirFile.delete();
-		return fileIsDeleted ? FSReturnVals.DestDirExists : FSReturnVals.Fail;
-		
+		return m.masterDeleteDir(src, dirname);	
 	}
 	
 	//unnecessary, thought we deleted a dir even if it had files in it
@@ -100,15 +78,8 @@ public class ClientFS {
 	 * Example usage: RenameDir("/Shahram/CSCI485", "/Shahram/CSCI550") changes
 	 * "/Shahram/CSCI485" to "/Shahram/CSCI550"
 	 */
-	public FSReturnVals RenameDir(String src, String NewName) {
-		File srcDir = new File(src);
-		if(!srcDir.exists()) return FSReturnVals.SrcDirNotExistent;
-		
-		File newNameFile = new File(NewName);
-		if(newNameFile.exists()) return FSReturnVals.DestDirExists;
-		
-		boolean nameChanged = srcDir.renameTo(newNameFile);
-		return nameChanged ? FSReturnVals.Success : FSReturnVals.Fail;
+	public FSReturnVals RenameDir(String src, String newName) {
+		return m.masterRenameDir(src, newName);
 	}
 
 	/**
@@ -120,34 +91,7 @@ public class ClientFS {
 	 * Example usage: ListDir("/Shahram/CSCI485")
 	 */
 	public String[] ListDir(String tgt) {
-		//if src file does not exist return
-		File targetDir = new File(tgt);
-		if(!targetDir.exists()) {
-			//I feel like this should return null, not an empty directory
-			String[] dne = new String[1]; //TODO: clean this up
-			dne[0] = "SrcDirNotExistent";
-			return null;
-			//return dne;
-		}
-		
-		List<String> filesAsList = new ArrayList<String>();
-		ListDirHelper(filesAsList, targetDir, tgt);
-		String[] files = filesAsList.toArray(new String[filesAsList.size()]);		
-		
-		return files;
-	}
-	
-	
-	public void ListDirHelper(List<String> files, File currDir, String path) {
-		
-		String[] currFiles = currDir.list();
-		for(String currFileStr : currFiles) {
-			files.add(path + "/" + currFileStr);
-			File currFile = new File(path + "/" + currFileStr);
-			if(currFile.isDirectory()) {
-				ListDirHelper(files, currFile, path + "/" + currFileStr);
-			}
-		}
+		return m.masterListDir(tgt);
 	}
 
 	/**
@@ -159,13 +103,12 @@ public class ClientFS {
 	 * Example usage: Createfile("/Shahram/CSCI485/Lecture1/", "Intro.pptx")
 	 */
 	public FSReturnVals CreateFile(String tgtdir, String filename) {
-		File srcDir = new File(tgtdir);
-		if(!srcDir.exists()) return FSReturnVals.SrcDirNotExistent;
+//		System.out.println("---CREATING FILE---");
+//		System.out.println("\ttgtdir: " + tgtdir);
+//		System.out.println("\tfilename: " + filename);
 		
-		File newFile = new File(tgtdir + filename);
-		if(newFile.exists()) return FSReturnVals.FileExists;
 		
-		return newFile.mkdir() ? FSReturnVals.Success : FSReturnVals.Fail;
+		return m.masterCreateFile(tgtdir, filename);
 	}
 
 	/**
@@ -177,14 +120,13 @@ public class ClientFS {
 	 * Example usage: DeleteFile("/Shahram/CSCI485/Lecture1/", "Intro.pptx")
 	 */
 	public FSReturnVals DeleteFile(String tgtdir, String filename) {
-		File srcDir = new File(tgtdir);
-		if(!srcDir.exists()) return FSReturnVals.SrcDirNotExistent;
+//		System.out.println("---DELETING FILE----");
+//		System.out.println("\ttgtdir: " + tgtdir);
+//		System.out.println("\tfilename: " + filename);
 		
-		File deletionFile = new File(tgtdir + filename);
-		if(!deletionFile.exists()) return FSReturnVals.FileDoesNotExist;
-		
-		boolean wasDeleted = deletionFile.delete();
-		return wasDeleted ? FSReturnVals.Success : FSReturnVals.Fail;
+		FSReturnVals result =  m.masterDeleteFile(tgtdir, filename);
+		System.out.println("deletion result: " + result);
+		return result;
 	}
 
 	/**
