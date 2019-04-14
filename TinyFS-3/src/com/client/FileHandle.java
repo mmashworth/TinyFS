@@ -17,7 +17,7 @@ public class FileHandle {
 	public String getFileName() { return filename; }
 	
 	
-	public void setFileDir(String dir) { dir = dir;}
+	public void setFileDir(String dir) { this.dir = dir;}
 	public void setFileName(String name) { filename = name; }
 	
 	public boolean equals(FileHandle other) {

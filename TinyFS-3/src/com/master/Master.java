@@ -35,6 +35,7 @@ public class Master {
 	private Map<String, List<String> > namespace;
 	//mapping from a directory to its files
 	private Map<String, List<FileHandle> > dirToFiles;
+	//TODO: need a mapping from file handles to chunk handles
 	
 	
 	
@@ -160,6 +161,7 @@ public class Master {
 	 */
 	
 	public FSReturnVals masterCreateFile(String tgtdir, String filename) {
+		tgtdir = appendSlash(tgtdir);
 		//need a mapping from dirs to which files they contain
 		
 		//if no tgtdir, return SrcDirNotExistent
@@ -186,6 +188,8 @@ public class Master {
 	 * DELETE FILES
 	 */
 	public FSReturnVals masterDeleteFile(String tgtdir, String filename) {
+		printFiles();
+		
 		//if tgtdir is not in namespace, return
 		if(!namespace.containsKey(tgtdir)) return FSReturnVals.SrcDirNotExistent;
 
@@ -205,7 +209,28 @@ public class Master {
 		return FSReturnVals.FileDoesNotExist;
 	}
 	
-	
+	/*
+	 * OPEN FILES
+	 */
+	//filepath of the form /aaa/bbb/.../zzz/ where zzz is the file to open
+	public FSReturnVals masterOpenFile(String filepath, FileHandle ofh) {
+		//printFiles();
+		String tgtdir = cutOffLastDir(filepath);
+		String filename = getLastDir(filepath);
+		System.out.println("\ttgtdir: " + tgtdir);
+		System.out.println("\tfilename: " + filename);
+		
+		FileHandle tmp = new FileHandle(tgtdir, filename);
+		for(FileHandle fh : dirToFiles.get(tgtdir)) {
+			if(fh.equals(tmp)) {
+				ofh.setFileDir(tgtdir);
+				ofh.setFileName(filename);
+				return FSReturnVals.Success;
+			}
+		}
+		
+		return FSReturnVals.FileDoesNotExist;
+	}
 	
 	
 	
@@ -256,7 +281,7 @@ public class Master {
 	//assume path is of the form /.../.../.../
 	public String getLastDir(String path) {
 		String[] dirs = path.split("/");
-		return dirs[dirs.length-1] + "/";
+		return dirs[dirs.length-1];
 	}
 	
 	//appends a slash to the end of the string if it doesn't already have one

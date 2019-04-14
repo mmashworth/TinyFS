@@ -17,7 +17,7 @@ import com.client.TinyRec;
  */
 public class UnitTest4 {
 	
-	public static int NumRecs = 1000;
+	public static int NumRecs = 10;
 	static final String TestName = "Unit Test 4: ";
 	
 	public static void main(String[] args) {
@@ -25,14 +25,18 @@ public class UnitTest4 {
 		ClientFS cfs = new ClientFS();
 		FSReturnVals fsrv = cfs.CreateDir("/", dir1);
 		if ( fsrv != FSReturnVals.Success ){
-			System.out.println("Unit test 4 result: fail!");
+			System.out.println("Unit test 4 result: fail!1");
     		return;
 		}
 		fsrv = cfs.CreateFile("/" + dir1 + "/", "emp");
+		//created /Shahram/emp/
 		if( fsrv != FSReturnVals.Success ){
-			System.out.println("Unit test 4 result: fail!");
+			System.out.println("Unit test 4 result: fail!2");
     		return;
 		}
+		
+		//GOOD TO HERE----------------
+		
 		//get the file handle first
 		FileHandle fh = new FileHandle();
 		FSReturnVals ofd = cfs.OpenFile("/" + dir1 + "/emp", fh);
@@ -54,7 +58,9 @@ public class UnitTest4 {
 			}
 			
 			RID rid = new RID();
-			crec.AppendRecord(fh, payload, rid); //assemble RID in append record??
+			//TODO: AppendRecord
+			//assemble RID in append record??
+			crec.AppendRecord(fh, payload, rid);
 		}
 		fsrv = cfs.CloseFile(fh);
 		
@@ -95,14 +101,14 @@ public class UnitTest4 {
 		for(int i = 0; i < vect.size(); i++){
 			fsrv = crec.DeleteRecord(fh, vect.get(i));
 			if(fsrv != FSReturnVals.Success){
-				System.out.println("Unit test 4 result: failed to delete the record!");
+				System.out.println("Unit test 4 result: failed to delete the record!2.5");
 				return;
 			}
 		}
 		
 		fsrv = cfs.CloseFile(fh);
 		if(cntr != NumRecs){
-			System.out.println("Unit test 4 result: fail!");
+			System.out.println("Unit test 4 result: fail!3");
     		return;
 		}
 		
@@ -119,7 +125,7 @@ public class UnitTest4 {
 				int value = ((head[0] & 0xFF) << 24) | ((head[1] & 0xFF) << 16)
 				        | ((head[2] & 0xFF) << 8) | (head[3] & 0xFF);
 				if(value % 2 != 0){
-					System.out.println("Unit test 4 result: fail!  Found an odd numbered record with value " + value + ".");
+					System.out.println("Unit test 4 result: fail!4  Found an odd numbered record with value " + value + ".");
 		    		return;
 				}
 				r1 = r2;

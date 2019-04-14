@@ -3,8 +3,11 @@ package com.client;
 import java.nio.ByteBuffer;
 
 import com.client.ClientFS.FSReturnVals;
+import com.chunkserver.ChunkServer;
 
 public class ClientRec {
+	
+	ChunkServer cs = new ChunkServer();
 
 	/**
 	 * Appends a record to the open file as specified by ofh 
@@ -17,7 +20,10 @@ public class ClientRec {
 	 * Example usage: AppendRecord(FH1, obama, RecID1)
 	 */
 	public FSReturnVals AppendRecord(FileHandle ofh, byte[] payload, RID RecordID) {
-		return null;
+		System.out.println("----APPENDING RECORD----");
+		FSReturnVals result = cs.chunkServerAppendRecord(ofh, payload, RecordID);
+		System.out.println("append result: " + result);
+		return result;
 	}
 
 	/**

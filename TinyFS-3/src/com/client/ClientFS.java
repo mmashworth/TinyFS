@@ -103,9 +103,9 @@ public class ClientFS {
 	 * Example usage: Createfile("/Shahram/CSCI485/Lecture1/", "Intro.pptx")
 	 */
 	public FSReturnVals CreateFile(String tgtdir, String filename) {
-//		System.out.println("---CREATING FILE---");
-//		System.out.println("\ttgtdir: " + tgtdir);
-//		System.out.println("\tfilename: " + filename);
+		System.out.println("---CREATING FILE---");
+		System.out.println("\ttgtdir: " + tgtdir);
+		System.out.println("\tfilename: " + filename);
 		
 		
 		return m.masterCreateFile(tgtdir, filename);
@@ -120,9 +120,9 @@ public class ClientFS {
 	 * Example usage: DeleteFile("/Shahram/CSCI485/Lecture1/", "Intro.pptx")
 	 */
 	public FSReturnVals DeleteFile(String tgtdir, String filename) {
-//		System.out.println("---DELETING FILE----");
-//		System.out.println("\ttgtdir: " + tgtdir);
-//		System.out.println("\tfilename: " + filename);
+		System.out.println("---DELETING FILE----");
+		System.out.println("\ttgtdir: " + tgtdir);
+		System.out.println("\tfilename: " + filename);
 		
 		FSReturnVals result =  m.masterDeleteFile(tgtdir, filename);
 		System.out.println("deletion result: " + result);
@@ -137,8 +137,13 @@ public class ClientFS {
 	 *
 	 * Example usage: OpenFile("/Shahram/CSCI485/Lecture1/Intro.pptx", FH1)
 	 */
-	public FSReturnVals OpenFile(String FilePath, FileHandle ofh) {
-		return null;
+	public FSReturnVals OpenFile(String filepath, FileHandle ofh) {
+		//i think just use this to populate ofh
+		System.out.println("---OPENING FILE---");
+
+		FSReturnVals result =  m.masterOpenFile(filepath, ofh);
+		System.out.println("open file result: " + result);
+		return result;
 	}
 
 	/**
