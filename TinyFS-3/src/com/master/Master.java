@@ -81,27 +81,23 @@ public class Master {
 		//System.out.println("Deleting: " + src + dirName);
 
 		if(!namespace.containsKey(src)) return FSReturnVals.SrcDirNotExistent;
-		
-		//System.out.println("\tcontains the src");
-		
+				
 		String targetPath = src + dirName;
 		//dir exists and we're going to try to delete it
 		if(namespace.containsKey(targetPath)) {
-			//System.out.println("\tcontains the dirName");
 			//don't delete if it has contents in it
 			if(namespace.get(targetPath).size() > 0) return FSReturnVals.DirNotEmpty;
 			//otherwise remove from namespace
 			
-			//System.out.println("\tremoving dir");
 			//remove parent's reference to dir
 			namespace.get(src).remove(dirName);
-			//actually remove dir
+			//remove the actual dir
 			namespace.remove(targetPath);
-			printNamespace();
+			//printNamespace();
 			return FSReturnVals.DestDirExists;
 		}
 
-		return null; //not sure what to do if we attempt to delete a non-existent dir...
+		return null; //not sure what to do if we attempt to delete a non-existent dir
 	}
 	
 	
@@ -188,7 +184,7 @@ public class Master {
 	 * DELETE FILES
 	 */
 	public FSReturnVals masterDeleteFile(String tgtdir, String filename) {
-		printFiles();
+		//printFiles();
 		
 		//if tgtdir is not in namespace, return
 		if(!namespace.containsKey(tgtdir)) return FSReturnVals.SrcDirNotExistent;
@@ -217,8 +213,6 @@ public class Master {
 		//printFiles();
 		String tgtdir = cutOffLastDir(filepath);
 		String filename = getLastDir(filepath);
-		System.out.println("\ttgtdir: " + tgtdir);
-		System.out.println("\tfilename: " + filename);
 		
 		FileHandle tmp = new FileHandle(tgtdir, filename);
 		for(FileHandle fh : dirToFiles.get(tgtdir)) {

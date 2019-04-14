@@ -75,9 +75,7 @@ public class ChunkServer implements ChunkServerInterface {
 	public FSReturnVals chunkServerAppendRecord(FileHandle fh, byte[] payload, RID recordID) {	
 		if(!recordID.invalid()) return FSReturnVals.BadRecID;
 		if(payload.length > CHUNK_SIZE - 8) return FSReturnVals.RecordTooLong;
-		
-		System.out.println("Payload Length: " + payload.length);
-		
+				
 		String totalFilepath = rootFilePath + removeFirstSlash(fh.getFileDir());
 		String filepath = fh.getFileDir() + fh.getFileName();
 		String filename = fh.getFileName();
@@ -97,8 +95,6 @@ public class ChunkServer implements ChunkServerInterface {
 		
 		//if the last chunk has space append record to that, otherwise add it to a new chunk
 		String lastChunk = fileChunks.get(fileChunks.size()-1);
-		boolean recordPlaced = false;
-		System.out.println("here");
 		try {
 			int chunkOffset = (numChunks-1)*CHUNK_SIZE;
 			currFile.seek(4 + chunkOffset); //get location of first free record
@@ -115,7 +111,6 @@ public class ChunkServer implements ChunkServerInterface {
 				int freeRecordSpace = readIntAtOffset(currFile, nextFreeRecordOffset+4);
 				System.out.println("Still have " + freeRecordSpace + " bytes of free space");
 				if(freeRecordSpace >= payload.length + 8) {
-					recordPlaced = true;
 					int nextOpenSpace = readIntAtOffset(currFile, nextFreeRecordOffset);
 
 					writeIntAtOffset(currFile, 4, nextFreeRecordOffset + payload.length);
@@ -141,12 +136,7 @@ public class ChunkServer implements ChunkServerInterface {
 			}
 		} catch(IOException ioe) {}
 		
-		if(!recordPlaced) return appendRecordToEmptyChunk(currFile, payload, recordID, filepath, fileChunks.size()+1);
-		
-		
-		
-		
-		return null;
+		return appendRecordToEmptyChunk(currFile, payload, recordID, filepath, fileChunks.size()+1);
 	}
 	
 	public FSReturnVals appendRecordToEmptyChunk(RandomAccessFile currFile, byte[] payload, RID recordID, String filepath, int chunkNum) {
