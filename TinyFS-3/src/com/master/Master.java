@@ -93,7 +93,7 @@ public class Master {
 			namespace.get(src).remove(dirName);
 			//remove the actual dir
 			namespace.remove(targetPath);
-			//printNamespace();
+			printNamespace();
 			return FSReturnVals.DestDirExists;
 		}
 
@@ -184,7 +184,7 @@ public class Master {
 	 * DELETE FILES
 	 */
 	public FSReturnVals masterDeleteFile(String tgtdir, String filename) {
-		//printFiles();
+		printFiles();
 		
 		//if tgtdir is not in namespace, return
 		if(!namespace.containsKey(tgtdir)) return FSReturnVals.SrcDirNotExistent;
@@ -210,7 +210,7 @@ public class Master {
 	 */
 	//filepath of the form /aaa/bbb/.../zzz/ where zzz is the file to open
 	public FSReturnVals masterOpenFile(String filepath, FileHandle ofh) {
-		//printFiles();
+		printFiles();
 		String tgtdir = cutOffLastDir(filepath);
 		String filename = getLastDir(filepath);
 		

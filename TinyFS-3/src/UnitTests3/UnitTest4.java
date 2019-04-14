@@ -17,7 +17,7 @@ import com.client.TinyRec;
  */
 public class UnitTest4 {
 	
-	public static int NumRecs = 10;
+	public static int NumRecs = 100;
 	static final String TestName = "Unit Test 4: ";
 	
 	public static void main(String[] args) {

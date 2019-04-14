@@ -6,6 +6,8 @@ public class RID {
 	private long offset;
 	private long length;
 	
+	private int slotMapIndex;
+	
 	public RID() {
 	}
 	

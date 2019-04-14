@@ -97,6 +97,7 @@ public class ChunkServer implements ChunkServerInterface {
 		String lastChunk = fileChunks.get(fileChunks.size()-1);
 		try {
 			int chunkOffset = (numChunks-1)*CHUNK_SIZE;
+			System.out.println("chunk offset: " + chunkOffset);
 			currFile.seek(4 + chunkOffset); //get location of first free record
 			
 		
@@ -107,13 +108,15 @@ public class ChunkServer implements ChunkServerInterface {
 				//if this value is >= payload.length+8, insert the record here at offset
 			int prevPointerOffset = 4+chunkOffset;
 			while(nextFreeRecordOffset != -1) { //112
-				System.out.println("-->" + nextFreeRecordOffset);
+				System.out.println("next free record offset -->" + nextFreeRecordOffset);
 				int freeRecordSpace = readIntAtOffset(currFile, nextFreeRecordOffset+4);
 				System.out.println("Still have " + freeRecordSpace + " bytes of free space");
+				
+				
 				if(freeRecordSpace >= payload.length + 8) {
 					int nextOpenSpace = readIntAtOffset(currFile, nextFreeRecordOffset);
 
-					writeIntAtOffset(currFile, 4, nextFreeRecordOffset + payload.length);
+					writeIntAtOffset(currFile, 4+chunkOffset, nextFreeRecordOffset + payload.length);
 					currFile.seek(nextFreeRecordOffset);
 					currFile.write(payload);
 					writeIntAtOffset(currFile, nextFreeRecordOffset+payload.length, nextOpenSpace);
@@ -139,9 +142,16 @@ public class ChunkServer implements ChunkServerInterface {
 		return appendRecordToEmptyChunk(currFile, payload, recordID, filepath, fileChunks.size()+1);
 	}
 	
+	
+	
+	
+	
+	
+	
 	public FSReturnVals appendRecordToEmptyChunk(RandomAccessFile currFile, byte[] payload, RID recordID, String filepath, int chunkNum) {
+		System.out.println("------CREATING NEW CHUNK------");
 		try {
-			long chunkOffset = CHUNK_SIZE*(chunkNum-1);
+			int chunkOffset = CHUNK_SIZE*(chunkNum-1);
 			//allocate a space of size CHUNK_SIZE in the file
 			currFile.setLength(CHUNK_SIZE*chunkNum);
 			//get the starting location of that chunk
@@ -151,7 +161,7 @@ public class ChunkServer implements ChunkServerInterface {
 			currFile.write(numRecords);
 			//write 4 + 4 + payload.length to the next four bytes (points to next free record)
 			currFile.seek(4 + chunkOffset);
-			byte[] nextFreeRecord = ByteBuffer.allocate(4).putInt(4+4+payload.length).array();
+			byte[] nextFreeRecord = ByteBuffer.allocate(4).putInt(4+4+payload.length+chunkOffset).array();
 			currFile.write(nextFreeRecord);
 			//write payload to the next payload.length bytes
 			currFile.seek(8 + chunkOffset);
