@@ -20,9 +20,9 @@ public class ClientRec {
 	 * Example usage: AppendRecord(FH1, obama, RecID1)
 	 */
 	public FSReturnVals AppendRecord(FileHandle ofh, byte[] payload, RID RecordID) {
-		System.out.println("----APPENDING RECORD----");
+		//System.out.println("----APPENDING RECORD----");
 		FSReturnVals result = cs.chunkServerAppendRecord(ofh, payload, RecordID);
-		System.out.println("append result: " + result);
+		//System.out.println("append result: " + result);
 		return result;
 	}
 
@@ -49,7 +49,9 @@ public class ClientRec {
 	 * Example usage: ReadFirstRecord(FH1, tinyRec)
 	 */
 	public FSReturnVals ReadFirstRecord(FileHandle ofh, TinyRec rec){
-		return null;
+		//System.out.println("----FETCHING FIRST RECORD----");
+		FSReturnVals result = cs.chunkServerReadFirstRecord(ofh, rec);
+		return result;
 	}
 
 	/**
@@ -61,7 +63,9 @@ public class ClientRec {
 	 * Example usage: ReadLastRecord(FH1, tinyRec)
 	 */
 	public FSReturnVals ReadLastRecord(FileHandle ofh, TinyRec rec){
-		return null;
+		//System.out.println("----FETCHING LAST RECORD----");
+		FSReturnVals result = cs.chunkServerReadLastRecord(ofh, rec);
+		return result;
 	}
 
 	/**

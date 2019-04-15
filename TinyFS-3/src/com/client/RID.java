@@ -37,4 +37,10 @@ public class RID {
 	public void setLength(long length) { this.length = length; }
 	
 	
+	public boolean greaterThan(RID other) {
+		if(this.offset > other.offset) return true;
+		return false;
+	}
+	
+	
 }

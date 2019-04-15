@@ -2,6 +2,7 @@ package com.chunkserver;
 
 import java.io.File;
 
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 
 import com.client.Client;
@@ -26,6 +28,7 @@ import com.master.Master;
 import com.client.RID;
 import com.client.FileHandle;
 import com.client.ClientFS.FSReturnVals;
+import com.client.TinyRec;
 
 
 /**
@@ -58,6 +61,10 @@ public class ChunkServer implements ChunkServerInterface {
 	//map from rootFilePath to its chunk handles
 	//chunk handle = filename + slot number/index
 	Map<String, List<String>> fileToChunks;
+	
+	//maps from a file's chunk to a linked list of its record
+	//KEY: filepath concatenated with the chunk number
+	Map<String, LinkedList<RID>> chunkToRecs;
 	
 	public static final int FileHeaderLength = 4;
 	public static final int CHUNK_SIZE = 4096;
@@ -97,31 +104,30 @@ public class ChunkServer implements ChunkServerInterface {
 		String lastChunk = fileChunks.get(fileChunks.size()-1);
 		try {
 			int chunkOffset = (numChunks-1)*CHUNK_SIZE;
-			System.out.println("chunk offset: " + chunkOffset);
+			//System.out.println("chunk offset: " + chunkOffset);
 			currFile.seek(4 + chunkOffset); //get location of first free record
 			
 		
 			int nextFreeRecordOffset = readIntAtOffset(currFile, 4+chunkOffset);
-			System.out.println("First free record is at: " + nextFreeRecordOffset);
+			//System.out.println("First free record is at: " + nextFreeRecordOffset);
 			
 			//read value at firstFreeRecord+4
 				//if this value is >= payload.length+8, insert the record here at offset
 			int prevPointerOffset = 4+chunkOffset;
 			while(nextFreeRecordOffset != -1) { //112
-				System.out.println("next free record offset -->" + nextFreeRecordOffset);
+				//System.out.println("next free record offset -->" + nextFreeRecordOffset);
 				int freeRecordSpace = readIntAtOffset(currFile, nextFreeRecordOffset+4);
-				System.out.println("Still have " + freeRecordSpace + " bytes of free space");
+				//System.out.println("Still have " + freeRecordSpace + " bytes of free space");
 				
 				
 				if(freeRecordSpace >= payload.length + 8) {
 					int nextOpenSpace = readIntAtOffset(currFile, nextFreeRecordOffset);
 
-					writeIntAtOffset(currFile, 4+chunkOffset, nextFreeRecordOffset + payload.length);
+					writeIntAtOffset(currFile, prevPointerOffset, nextFreeRecordOffset + payload.length);
 					currFile.seek(nextFreeRecordOffset);
 					currFile.write(payload);
 					writeIntAtOffset(currFile, nextFreeRecordOffset+payload.length, nextOpenSpace);
 					writeIntAtOffset(currFile, nextFreeRecordOffset+payload.length+4, freeRecordSpace-payload.length);
-					System.out.println("Returning");
 					
 					recordID.setFilepath(filepath);
 					recordID.setChunk(Integer.toString(numChunks+1));
@@ -130,6 +136,10 @@ public class ChunkServer implements ChunkServerInterface {
 					
 					int numRecords = readIntAtOffset(currFile, chunkOffset) + 1;
 					writeIntAtOffset(currFile, chunkOffset, numRecords);
+					
+					System.out.println("adding another record in at offset" + nextFreeRecordOffset);
+					insertRecord(filepath, Integer.toString(fileChunks.size()), recordID);
+					
 					return FSReturnVals.Success;
 				}
 				
@@ -141,12 +151,6 @@ public class ChunkServer implements ChunkServerInterface {
 		
 		return appendRecordToEmptyChunk(currFile, payload, recordID, filepath, fileChunks.size()+1);
 	}
-	
-	
-	
-	
-	
-	
 	
 	public FSReturnVals appendRecordToEmptyChunk(RandomAccessFile currFile, byte[] payload, RID recordID, String filepath, int chunkNum) {
 		System.out.println("------CREATING NEW CHUNK------");
@@ -181,10 +185,57 @@ public class ChunkServer implements ChunkServerInterface {
 		fileToChunks.get(filepath).add(Integer.toString(chunkNum)); //first chunk for this file
 		recordID.setFilepath(filepath);
 		recordID.setChunk(Integer.toString(chunkNum));
-		recordID.setOffset(8);
+		recordID.setOffset(8 + (chunkNum-1)*CHUNK_SIZE);
 		recordID.setLength(payload.length);
+		
+		LinkedList<RID> records = new LinkedList<>();
+		records.add(recordID);
+		System.out.println("added first record to this new chunk at offset: " + (CHUNK_SIZE*(chunkNum-1)+8));
+		chunkToRecs.put(filepath + Integer.toString(chunkNum), records);
+		
 		return FSReturnVals.Success;
 	}
+	
+	
+	
+	
+	public FSReturnVals chunkServerReadFirstRecord(FileHandle fh, TinyRec rec) {
+		RID recordID = rec.getRID();
+		String chunkHandle = fh.getFileDir() + fh.getFileName() + 1;
+		
+		//file has no chunks yet
+		if(!chunkToRecs.containsKey(chunkHandle)) return FSReturnVals.RecDoesNotExist;
+		//file had chunks but they were all deleted
+		if(chunkToRecs.get(chunkHandle).size() == 0) return FSReturnVals.RecDoesNotExist;
+				
+		//fill rec with the first record of the first chunk
+		rec.setRID(  chunkToRecs.get(chunkHandle).getFirst()  );
+		return FSReturnVals.Success;
+	}
+	
+	public FSReturnVals chunkServerReadLastRecord(FileHandle fh, TinyRec rec) {
+		RID recordID = rec.getRID();
+		String filepath = fh.getFileDir() + fh.getFileName();
+		String numChunks = Integer.toString(  fileToChunks.get(filepath).size()  );
+		String chunkHandle = filepath + numChunks;
+		
+		//file has no chunks yet
+		if(!chunkToRecs.containsKey(chunkHandle)) return FSReturnVals.RecDoesNotExist;
+		//chunk had records but they were all deleted
+		if(chunkToRecs.get(chunkHandle).size() == 0) return FSReturnVals.RecDoesNotExist;
+				
+		//fill rec with the first record of the first chunk
+		rec.setRID(  chunkToRecs.get(chunkHandle).getLast()  );
+		return FSReturnVals.Success;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	/* Returns a file with the filepath and filename
 	 * 
@@ -212,12 +263,6 @@ public class ChunkServer implements ChunkServerInterface {
 	}
 	
 	
-	
-	
-	
-	
-	
-	
 	/**
 	 * Initialize the chunk server
 	 */
@@ -226,6 +271,8 @@ public class ChunkServer implements ChunkServerInterface {
 		File[] fs = dir.listFiles();
 
 		fileToChunks = new HashMap<String, List<String>>();
+		chunkToRecs = new HashMap<String, LinkedList<RID>>() ;
+
 		
 		if(fs.length == 0){
 			counter = 0;
@@ -413,6 +460,32 @@ public class ChunkServer implements ChunkServerInterface {
 	 * HELPERS
 	 */
 	
+	//method to insert a record into list
+	public void insertRecord(String filepath, String chunk, RID recordID) {
+		LinkedList<RID> records = chunkToRecs.get(filepath+chunk);
+		if(records.size() == 0) records.add(recordID);
+		
+		for(int i=0; i<records.size(); i++) {
+			//record being inserted has a smaller offset
+			if(!recordID.greaterThan(records.get(i))) { 
+				records.add(i, recordID);
+				printRecords(filepath, chunk);
+				return;
+			}
+		}
+		records.addLast(recordID);
+		printRecords(filepath, chunk);
+	}
+	
+	public void printRecords(String filepath, String chunk) {
+		System.out.println("-----PRINTING RECORDS FOR " + filepath+chunk + "-----");
+		System.out.println(chunkToRecs.get(filepath+chunk).size());
+		for(RID rid : chunkToRecs.get(filepath+chunk)) {
+			System.out.println("\tOffset: " + rid.getOffset());
+		}
+		System.out.println("-----DONE PRINTING RECORDS FOR " + filepath+chunk + "-----");
+	}
+	
 	public void writeIntAtOffset(RandomAccessFile file, int offset, int num) {
 		try {
 			file.seek(offset);
@@ -423,7 +496,6 @@ public class ChunkServer implements ChunkServerInterface {
 			return;
 		}
 	}
-	
 	
 	public int readIntAtOffset(RandomAccessFile file, int offset) {
 		try {

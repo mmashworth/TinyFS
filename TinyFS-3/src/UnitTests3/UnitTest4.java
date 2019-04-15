@@ -17,7 +17,7 @@ import com.client.TinyRec;
  */
 public class UnitTest4 {
 	
-	public static int NumRecs = 100;
+	public static int NumRecs = 80;
 	static final String TestName = "Unit Test 4: ";
 	
 	public static void main(String[] args) {
@@ -67,11 +67,11 @@ public class UnitTest4 {
 		
 		
 		
-		
 		System.out.println(TestName + "Scan all records in a file");
 		ofd = cfs.OpenFile("/" + dir1 + "/emp", fh);
 		TinyRec r1 = new TinyRec();
 		FSReturnVals retRR = crec.ReadFirstRecord(fh, r1);
+		
 		int cntr = 1;
 		ArrayList<RID> vect = new ArrayList<RID>();
 		while (r1.getRID() != null){
