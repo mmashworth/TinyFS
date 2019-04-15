@@ -214,6 +214,9 @@ public class Master {
 		String tgtdir = cutOffLastDir(filepath);
 		String filename = getLastDir(filepath);
 		
+		if(!namespace.containsKey(tgtdir)) return FSReturnVals.FileDoesNotExist;
+		
+		
 		FileHandle tmp = new FileHandle(tgtdir, filename);
 		for(FileHandle fh : dirToFiles.get(tgtdir)) {
 			if(fh.equals(tmp)) {

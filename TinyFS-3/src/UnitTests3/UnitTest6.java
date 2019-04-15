@@ -64,7 +64,7 @@ public class UnitTest6 {
 			
 			byte[] indexBytes = ByteBuffer.allocate(intSize).putInt(i).array();
 			long size = 0;
-			byte[] contentBytes = getBytesFromFile(new File("SuperHeros/" + filename + ".jpg"), size);
+			byte[] contentBytes = getBytesFromFile(new File("TinyFS-3/SuperHeros/" + filename + ".jpg"), size);
 			byte[] sizeBytes = ByteBuffer.allocate(intSize).putInt((int)size).array();
 			byte[] IMG_rec = new byte[indexBytes.length + sizeBytes.length + contentBytes.length];
 			
@@ -137,9 +137,10 @@ public class UnitTest6 {
 			}
 			byte[] indexBytes = ByteBuffer.allocate(intSize).putInt(i).array();
 			long size = 0;
-			byte[] contentBytes = getBytesFromFile(new File("SuperHeros/" + filename + ".jpg"), size);
+			byte[] contentBytes = getBytesFromFile(new File("TinyFS-3/SuperHeros/" + filename + ".jpg"), size);
 			byte[] sizeBytes = ByteBuffer.allocate(intSize).putInt((int)size).array();
 			imagePL = img1.getPayload();
+			System.out.println("-----------> " + imagePL.length);
 			for(int j = 0; j < imagePL.length; j++){
 				if(j < 4){
 					if(imagePL[j] != indexBytes[j]){
@@ -163,6 +164,8 @@ public class UnitTest6 {
 			size = sizeBytes.length;
 			sizeBytes = ByteBuffer.allocate(intSize).putInt(sizeBytes.length).array();
 			namePL = name1.getPayload();
+			System.out.println("-----------> " + namePL.length);
+
 			for(int j = 0; j < namePL.length; j++){
 				if(j < 4){
 					if(namePL[j] != indexBytes[j]){
@@ -196,7 +199,20 @@ public class UnitTest6 {
 		System.out.println(TestName + "Success!");
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static byte[] getBytesFromFile(File file, long length) throws IOException {
+		System.out.println(file.getAbsolutePath());
 	       InputStream is = new FileInputStream(file);
 	    
 	       length = file.length();

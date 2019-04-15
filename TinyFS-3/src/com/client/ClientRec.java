@@ -37,7 +37,10 @@ public class ClientRec {
 	 * Example usage: DeleteRecord(FH1, RecID1)
 	 */
 	public FSReturnVals DeleteRecord(FileHandle ofh, RID RecordID) {
-		return null;
+		System.out.println("----DELETING RECORD----");
+		FSReturnVals result = cs.chunkServerDeleteRecord(ofh, RecordID);
+		System.out.println("delete record result: " + result);
+		return result;
 	}
 
 	/**
@@ -50,9 +53,23 @@ public class ClientRec {
 	 */
 	public FSReturnVals ReadFirstRecord(FileHandle ofh, TinyRec rec){
 		//System.out.println("----FETCHING FIRST RECORD----");
-		FSReturnVals result = cs.chunkServerReadFirstRecord(ofh, rec);
+		FSReturnVals result = cs.chunkServerReadFirstRecord(ofh, rec, 1);
 		return result;
 	}
+	
+	/**
+	* Generalize above method so we can read first record of any chunk.
+	* 
+	* Useful for traversing from last record in a chunk to the first record in
+	* the next chunk
+	**/
+	public FSReturnVals ReadFirstRecord(FileHandle ofh, TinyRec rec, int chunkNum){
+		//System.out.println("----FETCHING FIRST RECORD----");
+		FSReturnVals result = cs.chunkServerReadFirstRecord(ofh, rec, chunkNum);
+		return result;
+	}
+	
+	
 
 	/**
 	 * Reads the last record of the file specified by ofh into payload 
@@ -70,14 +87,19 @@ public class ClientRec {
 
 	/**
 	 * Reads the next record after the specified pivot of the file specified by
-	 * ofh into payload Returns BadHandle if ofh is invalid Returns
-	 * RecDoesNotExist if the file is empty or pivot is invalid
+	 * ofh into payload 
+	 * 
+	 * Returns BadHandle if ofh is invalid 
+	 * Returns RecDoesNotExist if the file is empty or pivot is invalid
 	 *
 	 * Example usage: 1. ReadFirstRecord(FH1, tinyRec1) 2. ReadNextRecord(FH1,
 	 * rec1, tinyRec2) 3. ReadNextRecord(FH1, rec2, tinyRec3)
 	 */
 	public FSReturnVals ReadNextRecord(FileHandle ofh, RID pivot, TinyRec rec){
-		return null;
+		System.out.println("----FETCHING NEXT RECORD----");
+		FSReturnVals result = cs.chunkServerReadNextRecord(ofh, pivot, rec);
+		System.out.println("result: " + result);
+		return result;
 	}
 
 	/**

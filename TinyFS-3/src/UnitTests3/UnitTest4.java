@@ -17,7 +17,7 @@ import com.client.TinyRec;
  */
 public class UnitTest4 {
 	
-	public static int NumRecs = 80;
+	public static int NumRecs = 10;
 	static final String TestName = "Unit Test 4: ";
 	
 	public static void main(String[] args) {
@@ -77,7 +77,7 @@ public class UnitTest4 {
 		while (r1.getRID() != null){
 			TinyRec r2 = new TinyRec();
 			FSReturnVals retval = crec.ReadNextRecord(fh, r1.getRID(), r2);
-			//if(retval != FSReturnVals.Success){
+
 			if(r2.getRID() != null){
 				byte[] head = new byte[4];
 				System.arraycopy(r2.getPayload(), 0, head, 0, 4);
@@ -90,14 +90,21 @@ public class UnitTest4 {
 				}
 				r1 = r2;
 				cntr++;
-			} else {
+			} 
+			else {
 				r1.setRID(null);
 			}
 				
 		}
 		
+		
+		
 		System.out.println(TestName + "Delete the odd numbered records using their first four bytes.");
 		//Iterate the vector and delete the RIDs stored in it
+		if(vect.size() == 0) { 
+			System.out.println("No records stored. Fail!"); 
+			return; 
+		}
 		for(int i = 0; i < vect.size(); i++){
 			fsrv = crec.DeleteRecord(fh, vect.get(i));
 			if(fsrv != FSReturnVals.Success){
@@ -105,6 +112,7 @@ public class UnitTest4 {
 				return;
 			}
 		}
+		System.out.println("hereeeeeeeeeeeeeeeeeeeeeee");
 		
 		fsrv = cfs.CloseFile(fh);
 		if(cntr != NumRecs){

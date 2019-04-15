@@ -151,7 +151,9 @@ public class ClientFS {
 	 * Example usage: CloseFile(FH1)
 	 */
 	public FSReturnVals CloseFile(FileHandle ofh) {
-		return null;
+		ofh = null; //what else does this need to do???
+		return FSReturnVals.Success;
+//		return null;
 	}
 
 }
