@@ -1,15 +1,27 @@
 package com.master;
 
 import java.util.Map;
+
 import java.util.HashMap;
 import java.util.List;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.TreeMap;
 
 import com.client.ClientFS.FSReturnVals;
+import com.chunkserver.ChunkServer;
 import com.client.FileHandle;
 
 /* FSReturnVals values
@@ -31,6 +43,23 @@ Fail               // Returned when a method fails
 
 public class Master {
 	
+	
+	public static final int CREATE_DIR = 1;
+	public static final int DELETE_DIR = 2;
+	public static final int RENAME_DIR = 3;
+	public static final int LIST_DIR = 4;
+	public static final int CREATE_FILE = 5;
+	public static final int DELETE_FILE = 6;
+	public static final int OPEN_FILE = 7;
+	public static final int CLOSE_FILE = 8;
+	
+	private static ObjectOutputStream oos;
+	private static ObjectInputStream ois;
+	private static ServerSocket ss;
+	private static Socket s;
+	private static int port;
+	private static String ip;
+	
 	//maps from a filepath to the contents of that directory
 	private Map<String, List<String> > namespace;
 	//mapping from a directory to its files
@@ -46,7 +75,109 @@ public class Master {
 		namespace.put("/", new ArrayList<String>());
 		
 		dirToFiles = new HashMap<>();
+		
+		port = 0;
 	}
+	
+	public static void main(String[] args) {
+		startMaster();
+	}
+	
+	public static void startMaster() {
+		Master m = new Master();
+		try {
+			ss = new ServerSocket(port);
+			port = ss.getLocalPort(); //get port the server bound to
+			//TODO write port to config file
+			
+			System.out.println("Master bound to port: " + port);
+			
+			//get ip address
+			try { 
+				ip = InetAddress.getLocalHost().toString();	            
+	        } catch (UnknownHostException e) { System.out.println("start master error: " + e.getMessage()); }
+			
+			//Write port to config file
+//			FileWriter fw = new FileWriter(configFilePath + "configFile");
+//			PrintWriter pw = new PrintWriter(fw);
+//			pw.println(ip + " : " + Integer.toString(port));
+//			pw.close();
+		} catch(IOException ioe) {
+			System.out.println("ioe in startChunkServer binding to port: " + ioe.getMessage());
+			return;
+		}
+		
+		//TODO: need to read in logs here to restore master
+		
+		System.out.println("Now listening for connections");
+		//continually listen on this port for new connections
+		while(true) {
+			try {
+				//when new client connects, create new socket to communicate through
+				s = ss.accept();
+				System.out.println("Connection from: " + s.getInetAddress());
+				
+				oos = new ObjectOutputStream(s.getOutputStream());
+				ois = new ObjectInputStream(s.getInputStream());
+				
+				//continue reading requests until it is closed
+				while(!s.isClosed()) {					
+					//read in command identifier and switch based on that
+					int command = getPayloadInt(ois);
+					
+					String param1 = null, param2 = null, param3 = null;
+					
+					if(command == 4) {
+						param1 = m.readString(ois);
+					}
+					else if(command >= 1 && command <= 6) {
+						param1 = m.readString(ois);
+						param2 = m.readString(ois);
+					}
+					else if(command == 7 || command == 8) {
+						param1 = m.readString(ois);
+						param2 = m.readString(ois);
+						param3 = m.readString(ois);
+					}
+					
+					if(command == CREATE_DIR) {
+						m.masterCreateDir(param1, param2);
+					}
+					else if(command == DELETE_DIR) {
+						m.masterDeleteDir(param1, param2);
+					}
+					else if(command == RENAME_DIR) {
+						m.masterRenameDir(param1, param2);
+					}
+					else if(command == LIST_DIR) {
+						m.masterListDir(param1);
+					}
+					else if(command == CREATE_FILE) {
+						m.masterCreateFile(param1, param2);
+					}
+					else if(command == DELETE_FILE) {
+						m.masterDeleteFile(param1, param2);
+					}
+					else if(command == OPEN_FILE) {
+						FileHandle fh = new FileHandle(param2, param3);
+						m.masterOpenFile(param1, fh);
+					}
+					else if(command == CLOSE_FILE) {
+						FileHandle fh = new FileHandle(param2, param3);
+						m.masterOpenFile(param1, fh);
+						m.masterCloseFile(param1, fh);
+					}
+					else {
+						System.out.println("Could not parse command");
+					}
+				}
+			} catch(IOException ioe) {
+				System.out.println(ioe.getMessage());
+			}
+		} //end of while loop	
+	} //end of start master
+	
+	
 	
 	
 	
@@ -69,9 +200,6 @@ public class Master {
 		
 		return FSReturnVals.Success;
 	}
-	
-	
-	
 	
 	/*
 	 * DELETE DIRECTORIES
@@ -100,8 +228,6 @@ public class Master {
 		return null; //not sure what to do if we attempt to delete a non-existent dir
 	}
 	
-	
-	
 	/*
 	 * RENAME DIRECTORES
 	 */
@@ -123,8 +249,6 @@ public class Master {
 		
 		return FSReturnVals.Success;
 	}
-
-	
 
 	/*
 	 * LIST DIRECTORIES
@@ -151,11 +275,9 @@ public class Master {
 		}
 	}
 	
-
 	/*
 	 * CREATE FILES
 	 */
-	
 	public FSReturnVals masterCreateFile(String tgtdir, String filename) {
 		tgtdir = appendSlash(tgtdir);
 		//need a mapping from dirs to which files they contain
@@ -229,7 +351,14 @@ public class Master {
 		return FSReturnVals.FileDoesNotExist;
 	}
 	
-	
+	/*
+	 * CLOSE FILES
+	 */
+	public FSReturnVals masterCloseFile(String filepath, FileHandle ofh) {
+		//not really sure what this is supposed to do
+		ofh = null;
+		return FSReturnVals.Success;
+	}
 	
 	/*
 	 * HELPERS
@@ -288,9 +417,25 @@ public class Master {
 		return s + "/";
 	}
 	
+	public static int getPayloadInt(ObjectInputStream ois) {
+		byte[] payload = new byte[4];
+		int result = -2;
+		try {
+			result = ois.read(payload, 0, 4);
+		} catch(IOException ioe) {
+			System.out.println("ioe in getPayloadInt on server: " + ioe.getMessage());
+		}
+
+		if(result == -1) return result;
+		return (ByteBuffer.wrap(payload)).getInt();
+	}
 	
-	
-	
-	
+	public String readString(ObjectInputStream ois) {
+		try {
+			byte[] str_bytes = (byte[]) ois.readObject();
+			return new String(str_bytes);
+		} catch(Exception e) { System.out.println("master read string e: " + e.getMessage()); }
+		return null;
+	}
 	
 }

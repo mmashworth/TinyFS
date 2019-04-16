@@ -1,6 +1,10 @@
 package com.client;
 
 import java.io.File;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
 import com.master.Master;
 import java.util.List;
 import java.util.ArrayList;
@@ -8,6 +12,12 @@ import java.util.ArrayList;
 public class ClientFS {
 	
 	private Master m = new Master();
+	
+	private static ObjectOutputStream oos;
+	private static ObjectInputStream ois;
+	private static Socket s;
+	private String ip;
+	private int port;
 
 	public static final String root = "csci485";
 	

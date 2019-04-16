@@ -17,7 +17,7 @@ import com.client.TinyRec;
  */
 public class UnitTest5 {
 	
-	public static int NumRecs = 1000;
+	public static int NumRecs = 100;
 	static final String TestName = "Unit Test 5: ";
 	
 	public static void main(String[] args) {
@@ -32,7 +32,7 @@ public class UnitTest5 {
 		}
 		fsrv = cfs.CreateFile("/" + dir1 + "/", "emp1");
 		if( fsrv != FSReturnVals.Success ){
-			System.out.println("Unit test 5 result: fail!");
+			System.out.println("Unit test 5 result: fail!1");
     		return;
 		}
 		//get the file handle first
@@ -53,6 +53,9 @@ public class UnitTest5 {
 			crec.AppendRecord(fh, payload, rid);
 		}
 		fsrv = cfs.CloseFile(fh);
+		
+		System.out.println("appended all records");
+		
 		ofd = cfs.OpenFile("/" + dir1 + "/emp1", fh);
 		TinyRec r1 = new TinyRec();
 		FSReturnVals retRR = crec.ReadLastRecord(fh, r1);
@@ -79,14 +82,14 @@ public class UnitTest5 {
 		for(int i = 0; i < vect.size(); i++){
 			fsrv = crec.DeleteRecord(fh, vect.get(i));
 			if(fsrv != FSReturnVals.Success){
-				System.out.println("Unit test 5 result: failed to delete the record!");
+				System.out.println("Unit test 5 result: failed to delete the record!2");
 				return;
 			}
 		}
 		
 		fsrv = cfs.CloseFile(fh);
 		if(cntr != NumRecs){
-			System.out.println("Unit test 5 result: fail!");
+			System.out.println("Unit test 5 result: fail!3");
     		return;
 		}
 		

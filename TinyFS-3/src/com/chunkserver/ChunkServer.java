@@ -67,7 +67,7 @@ public class ChunkServer implements ChunkServerInterface {
 	Map<String, LinkedList<RID>> chunkToRecs;
 	
 	public static final int FileHeaderLength = 4;
-	public static final int CHUNK_SIZE = 4096*256;
+	public static final int CHUNK_SIZE = 4096;
 	
 	
 	/*
@@ -289,8 +289,10 @@ public class ChunkServer implements ChunkServerInterface {
 	}
 	
 	public FSReturnVals chunkServerReadLastRecord(FileHandle fh, TinyRec rec) {
+		System.out.println("----READING LAST RECORD OF LAST CHUNK----");
 		String filepath = fh.getFileDir() + fh.getFileName();
 		String numChunks = Integer.toString(  fileToChunks.get(filepath).size()  );
+		System.out.println("\tchunkNum: " + numChunks);
 		String chunkHandle = filepath + numChunks;
 		
 		//file has no chunks yet
