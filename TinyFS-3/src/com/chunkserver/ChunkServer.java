@@ -377,7 +377,7 @@ public class ChunkServer implements ChunkServerInterface {
 		
 		if(prevRecord == null) { //try the next chunk
 			int prevChunk = Integer.parseInt(pivot.getChunk()) - 1;
-			System.out.println("Moving to first record of the next chunk: " + prevChunk );
+			System.out.println("Moving to last record of the prev chunk: " + prevChunk );
 			return chunkServerReadLastRecord(fh, rec, prevChunk);
 		}
 		

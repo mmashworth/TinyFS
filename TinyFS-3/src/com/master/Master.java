@@ -60,6 +60,8 @@ public class Master {
 	private static int port;
 	private static String ip;
 	
+	private static String configFilePath = "TinyFS-3/ClientConfig.txt/";
+	
 	//maps from a filepath to the contents of that directory
 	private Map<String, List<String> > namespace;
 	//mapping from a directory to its files
@@ -98,10 +100,11 @@ public class Master {
 	        } catch (UnknownHostException e) { System.out.println("start master error: " + e.getMessage()); }
 			
 			//Write port to config file
-//			FileWriter fw = new FileWriter(configFilePath + "configFile");
-//			PrintWriter pw = new PrintWriter(fw);
-//			pw.println(ip + " : " + Integer.toString(port));
-//			pw.close();
+			System.out.println("Writing port to file");
+			FileWriter fw = new FileWriter(configFilePath);
+			PrintWriter pw = new PrintWriter(fw);
+			pw.println("port : " + Integer.toString(port));
+			pw.close();
 		} catch(IOException ioe) {
 			System.out.println("ioe in startChunkServer binding to port: " + ioe.getMessage());
 			return;
