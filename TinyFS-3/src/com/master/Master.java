@@ -60,7 +60,7 @@ public class Master {
 	private static int port;
 	private static String ip;
 	
-	private static String configFilePath = "TinyFS-3/ClientConfig.txt/";
+	public static String configFilePath = "TinyFS-3/ClientConfig.txt/";
 	
 	//maps from a filepath to the contents of that directory
 	private Map<String, List<String> > namespace;
@@ -71,6 +71,7 @@ public class Master {
 	
 	
 	private Map<String, String> fileToChunkMap;
+	
 
 	public Master() {
 		namespace = new HashMap<>();
@@ -127,6 +128,7 @@ public class Master {
 				while(!s.isClosed()) {					
 					//read in command identifier and switch based on that
 					int command = getPayloadInt(ois);
+					if(command != -1) System.out.println("Received command: " + command);
 					
 					String param1 = null, param2 = null, param3 = null;
 					
@@ -144,7 +146,8 @@ public class Master {
 					}
 					
 					if(command == CREATE_DIR) {
-						m.masterCreateDir(param1, param2);
+						FSReturnVals result = m.masterCreateDir(param1, param2);
+						
 					}
 					else if(command == DELETE_DIR) {
 						m.masterDeleteDir(param1, param2);
@@ -171,7 +174,7 @@ public class Master {
 						m.masterCloseFile(param1, fh);
 					}
 					else {
-						System.out.println("Could not parse command");
+						//System.out.println("Could not parse command");
 					}
 				}
 			} catch(IOException ioe) {
@@ -435,10 +438,76 @@ public class Master {
 	
 	public String readString(ObjectInputStream ois) {
 		try {
-			byte[] str_bytes = (byte[]) ois.readObject();
-			return new String(str_bytes);
+			int payloadSize = getPayloadInt(ois);
+			System.out.println("String of length: " + payloadSize);
+			
+			byte[] payload = new byte[payloadSize];
+			byte[] temp = new byte[payloadSize];
+			int totalRead = 0;
+			
+			while(totalRead != payloadSize) {
+				int currRead = -1;
+				try {
+					//read bytes from stream into byte array and add byte by byte to final
+					//payload byte array
+					currRead = ois.read(temp, 0, (payloadSize - totalRead));
+					for(int i=0; i < currRead; i++) {
+						payload[totalRead + i] = temp[i];
+					}
+				} catch(IOException ioe) {
+					System.out.println("ChunkServer getPayload ioe: " + ioe.getMessage());
+					try {
+						s.close();
+						System.out.println("closed client socket connection");
+					} catch(IOException ioe2) {
+						System.out.println("ioe in closing client socket connection: " + ioe2.getMessage());
+					}
+					return null;
+				}
+				if(currRead == -1) {
+					System.out.println("error in reading payload");
+					return null;
+				} else {
+					totalRead += currRead;
+				}
+			}
+			
+			String result = new String(payload);
+			System.out.println("Master read in string: " + result);
+			return result;
+			
+			
+			
+			
 		} catch(Exception e) { System.out.println("master read string e: " + e.getMessage()); }
 		return null;
 	}
 	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
