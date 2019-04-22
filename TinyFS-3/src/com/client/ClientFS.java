@@ -39,6 +39,8 @@ public class ClientFS {
 		NotImplemented,    // Specific to CSCI 485 and its unit tests
 		Success,           // Returned when a method succeeds
 		Fail               // Returned when a method fails
+		
+		
 	}
 
 	
@@ -89,19 +91,20 @@ public class ClientFS {
 	public FSReturnVals CreateDir(String src, String dirname) {
 		try {
 			oos.writeInt(Master.CREATE_DIR);
-			sendStringToMaster(src);
-			sendStringToMaster(dirname);
+			Master.sendString(oos, src);
+			Master.sendString(oos, dirname);
 			oos.flush();
 			
-			int size = getPayloadInt(ois);
-			String result = new String(getPayload(ois, size));
-			System.out.println("Socket result: " + result);
+			String result = new String(Master.readString(ois));
+			return FSReturnVals.valueOf(result);
 			
 			//read in result from master
 			
-		} catch(IOException ioe) {}
+		} catch(IOException ioe) {
+			return FSReturnVals.Fail;
+		}
 
-		return m.masterCreateDir(src, dirname);
+		//return m.masterCreateDir(src, dirname);
 	}
 	
 	
@@ -223,68 +226,11 @@ public class ClientFS {
 	}
 	
 	
-	public void sendStringToMaster(String s) {
-		System.out.println("Sending: " + s + " to master.");
-		byte[] s_bytes = s.getBytes();
-		try {
-			oos.writeInt(s_bytes.length);
-			oos.write(s_bytes);
-		} catch(IOException ioe) {
-			System.out.println("sendStringToMaster ioe: " + ioe.getMessage());
-		}
-	}
-	
-	
-	
-	public int getPayloadInt(ObjectInputStream ois) {
-		byte[] payload = new byte[4];
-		int result = -2;
-		try {
-			result = ois.read(payload, 0, 4);
-		} catch(IOException ioe) {
-			System.out.println("ioe in getPayloadInt on client: " + ioe.getMessage());
-		}
 
-		if(result == -1) return result;
-		else {
-			return (ByteBuffer.wrap(payload)).getInt();
-		}
-	}
 	
 	
-	public byte[] getPayload(ObjectInputStream ois, int payloadSize) {
-		byte[] payload = new byte[payloadSize];
-		byte[] temp = new byte[payloadSize];
-		int totalRead = 0;
-		
-		while(totalRead != payloadSize) {
-			int currRead = -1;
-			try {
-				//read bytes from stream into byte array and add byte by byte to final
-				//payload byte array
-				currRead = ois.read(temp, 0, (payloadSize - totalRead));
-				for(int i=0; i < currRead; i++) {
-					payload[totalRead + i] = temp[i];
-				}
-			} catch(IOException ioe) {
-				System.out.println("Client getPayload ioe: " + ioe.getMessage());
-				try {
-					s.close();
-					System.out.println("closed client socket connection");
-				} catch(IOException ioe2) {
-					System.out.println("ioe in closing client socket connection: " + ioe2.getMessage());
-				}
-				return null;
-			}
-			if(currRead == -1) {
-				System.out.println("error in reading payload");
-				return null;
-			} else {
-				totalRead += currRead;
-			}
-		}
-		return payload;
-	}
+	
+
 
 }
 

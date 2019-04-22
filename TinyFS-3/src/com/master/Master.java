@@ -147,7 +147,14 @@ public class Master {
 					
 					if(command == CREATE_DIR) {
 						FSReturnVals result = m.masterCreateDir(param1, param2);
-						
+						byte[] result_bytes = result.toString().getBytes();
+						try {
+							oos.writeInt(result_bytes.length);
+							oos.write(result_bytes);
+							oos.flush();
+						} catch(IOException ioe) {
+							System.out.println("sendStringToMaster ioe: " + ioe.getMessage());
+						}
 					}
 					else if(command == DELETE_DIR) {
 						m.masterDeleteDir(param1, param2);
@@ -423,6 +430,30 @@ public class Master {
 		return s + "/";
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	 * methods for getting ints/strings from streams
+	 */
+	
+	public static void sendString(ObjectOutputStream oos, String s) {
+		System.out.println("Sending: " + s + " to master.");
+		byte[] s_bytes = s.getBytes();
+		try {
+			oos.writeInt(s_bytes.length);
+			oos.write(s_bytes);
+		} catch(IOException ioe) {
+			System.out.println("sendStringToMaster ioe: " + ioe.getMessage());
+		}
+	}
+	
 	public static int getPayloadInt(ObjectInputStream ois) {
 		byte[] payload = new byte[4];
 		int result = -2;
@@ -436,7 +467,8 @@ public class Master {
 		return (ByteBuffer.wrap(payload)).getInt();
 	}
 	
-	public String readString(ObjectInputStream ois) {
+	
+	public static String readString(ObjectInputStream ois) {
 		try {
 			int payloadSize = getPayloadInt(ois);
 			System.out.println("String of length: " + payloadSize);
