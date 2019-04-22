@@ -160,7 +160,23 @@ public class ClientFS {
 	 * Example usage: ListDir("/Shahram/CSCI485")
 	 */
 	public String[] ListDir(String tgt) {
-		return m.masterListDir(tgt);
+		try {
+			oos.writeInt(Master.LIST_DIR);
+			Master.sendString(oos, tgt);
+			oos.flush();
+			
+			int numStrings = Master.getPayloadInt(ois);
+			String[] results = new String[numStrings];
+			for(int i=0; i<numStrings; i++) {
+				results[i] = new String(Master.readString(ois));
+			}
+			return results;
+			
+			//read in result from master
+			
+		} catch(IOException ioe) {
+			return null;
+		}
 	}
 
 	/**

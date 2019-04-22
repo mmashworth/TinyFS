@@ -163,7 +163,12 @@ public class Master {
 						m.masterRenameDir(param1, param2);
 					}
 					else if(command == LIST_DIR) {
-						m.masterListDir(param1);
+						String[] results = m.masterListDir(param1);
+						oos.writeInt(results.length);
+						for(String s : results) {
+							sendString(oos, s);
+						}
+						oos.flush();
 					}
 					else if(command == CREATE_FILE) {
 						m.masterCreateFile(param1, param2);
