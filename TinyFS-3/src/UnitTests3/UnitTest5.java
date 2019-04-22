@@ -58,6 +58,7 @@ public class UnitTest5 {
 		
 		ofd = cfs.OpenFile("/" + dir1 + "/emp1", fh);
 		TinyRec r1 = new TinyRec();
+		
 		FSReturnVals retRR = crec.ReadLastRecord(fh, r1);
 		int cntr = 1;
 		ArrayList<RID> vect = new ArrayList<RID>();

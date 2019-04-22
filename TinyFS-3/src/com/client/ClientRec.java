@@ -80,8 +80,9 @@ public class ClientRec {
 	 * Example usage: ReadLastRecord(FH1, tinyRec)
 	 */
 	public FSReturnVals ReadLastRecord(FileHandle ofh, TinyRec rec){
-		//System.out.println("----FETCHING LAST RECORD----");
+		System.out.println("----FETCHING LAST RECORD----");
 		FSReturnVals result = cs.chunkServerReadLastRecord(ofh, rec);
+		System.out.println("Read last record result: " + result);
 		return result;
 	}
 
@@ -111,7 +112,10 @@ public class ClientRec {
 	 * recn-1, tinyRec2) 3. ReadPrevRecord(FH1, recn-2, tinyRec3)
 	 */
 	public FSReturnVals ReadPrevRecord(FileHandle ofh, RID pivot, TinyRec rec){
-		return null;
+		System.out.println("----FETCHING PREV RECORD----");
+		FSReturnVals result = cs.chunkServerReadPrevRecord(ofh, pivot, rec);
+		System.out.println("result: " + result);
+		return result;
 	}
 
 }

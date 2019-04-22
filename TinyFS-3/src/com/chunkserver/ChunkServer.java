@@ -292,7 +292,7 @@ public class ChunkServer implements ChunkServerInterface {
 		System.out.println("----READING LAST RECORD OF LAST CHUNK----");
 		String filepath = fh.getFileDir() + fh.getFileName();
 		String numChunks = Integer.toString(  fileToChunks.get(filepath).size()  );
-		System.out.println("\tchunkNum: " + numChunks);
+		
 		String chunkHandle = filepath + numChunks;
 		
 		//file has no chunks yet
@@ -318,7 +318,89 @@ public class ChunkServer implements ChunkServerInterface {
 		
 		return FSReturnVals.Success;
 	}
+	public FSReturnVals chunkServerReadLastRecord(FileHandle fh, TinyRec rec, int chunkNum) {
+		System.out.println("----READING LAST RECORD OF SOME CHUNK----");
+		String filepath = fh.getFileDir() + fh.getFileName();
+		String chunkHandle = filepath + chunkNum;
+		
+		//file has no chunks yet
+		if(!chunkToRecs.containsKey(chunkHandle)) return FSReturnVals.RecDoesNotExist;
+		//chunk had records but they were all deleted
+		if(chunkToRecs.get(chunkHandle).size() == 0) return FSReturnVals.RecDoesNotExist;
+				
+		//fill rec with the first record of the first chunk
+		RID recordID = chunkToRecs.get(chunkHandle).getLast();
+		
+		byte[] payload = new byte[(int) recordID.getLength()];
+		RandomAccessFile raf = null;
+		try {
+			raf = new RandomAccessFile(rootFilePath + filepath, "r");
+		} catch (FileNotFoundException fnfe) { System.out.println("CS read first record fnfe: " + fnfe.getMessage()); }
+		try {
+			raf.seek(recordID.getOffset());
+			raf.read(payload, 0, (int) recordID.getLength());
+		} catch(IOException ioe) { System.out.println("CS read first record ioe: " + ioe.getMessage()); }
+		
+		rec.setRID(recordID);
+		rec.setPayload(payload);
+		
+		return FSReturnVals.Success;
+	}
 	
+	
+	
+	public FSReturnVals chunkServerReadPrevRecord(FileHandle fh, RID pivot, TinyRec rec) {
+		//System.out.println("\tpivot offset: " + pivot.getOffset());
+		//System.out.println("\tpivot chunk: " + pivot.getChunk());
+		String filepath = fh.getFileDir() + fh.getFileName();
+		String chunkHandle = filepath + pivot.getChunk();
+		
+		//file has no chunks yet
+		if(!chunkToRecs.containsKey(chunkHandle)) return FSReturnVals.RecDoesNotExist;
+		//chunk had records but they were all deleted
+		if(chunkToRecs.get(chunkHandle).size() == 0) return FSReturnVals.RecDoesNotExist;
+						
+		//find the next record from the chunkToRecs LinkedList
+		System.out.println("\tChunkHandle: " + chunkHandle);
+		LinkedList<RID> records = chunkToRecs.get(chunkHandle);
+		RID prevRecord = null;
+		
+		
+		for(int i=records.size()-1; i>=0; i--) {
+			if(pivot.getOffset() == records.get(i).getOffset()) {
+				if(i != 0) prevRecord = records.get(i-1);
+				break;
+			}
+		}
+		
+
+		
+		if(prevRecord == null) { //try the next chunk
+			int prevChunk = Integer.parseInt(pivot.getChunk()) - 1;
+			System.out.println("Moving to first record of the next chunk: " + prevChunk );
+			return chunkServerReadLastRecord(fh, rec, prevChunk);
+		}
+		
+		
+		//at this point we know if next record exists or not
+		
+		if(prevRecord == null) return FSReturnVals.RecDoesNotExist;
+		
+		byte[] payload = new byte[(int) prevRecord.getLength()];
+		RandomAccessFile raf = null;
+		try {
+			raf = new RandomAccessFile(rootFilePath + filepath, "r");
+		} catch (FileNotFoundException fnfe) { System.out.println("CS read first record fnfe: " + fnfe.getMessage()); }
+		try {
+			raf.seek(prevRecord.getOffset());
+			raf.read(payload, 0, (int) prevRecord.getLength());
+		} catch(IOException ioe) { System.out.println("CS read first record ioe: " + ioe.getMessage()); }
+		
+		rec.setRID(prevRecord);
+		rec.setPayload(payload);
+		
+		return FSReturnVals.Success;
+	}
 	//TODO: will have to be able to hop from the end of a chunk to the beginning of another
 	public FSReturnVals chunkServerReadNextRecord(FileHandle fh, RID pivot, TinyRec rec) {
 		//System.out.println("\tpivot offset: " + pivot.getOffset());
