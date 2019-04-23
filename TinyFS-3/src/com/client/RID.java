@@ -1,6 +1,6 @@
 package com.client;
 
-public class RID {
+public class RID implements java.io.Serializable {
 	private String filepath;
 	private String chunk;
 	private long offset;

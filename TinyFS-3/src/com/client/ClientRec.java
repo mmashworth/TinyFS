@@ -41,18 +41,10 @@ public class ClientRec {
 			chunkServerPort = Integer.parseInt(lastEntry.substring(lastEntry.indexOf(':')+2));
 
 			
-			System.out.println("---->0"+chunkServerPort);
 			s = new Socket("127.0.0.1", chunkServerPort);
-			System.out.println("---->1");
-
 			oos = new ObjectOutputStream(s.getOutputStream());
-			System.out.println("---->2");
-
 			oos.flush();
-			System.out.println("----3");
-
 			ois = new ObjectInputStream(s.getInputStream());
-			System.out.println("---->4");
 
 		} catch(IOException ioe) {
 			System.out.println("ioe in Client constructor: " + ioe.getMessage());
@@ -93,10 +85,6 @@ public class ClientRec {
 			System.out.println("clientrec appendrecord ioe: " + ioe.getMessage());
 			return FSReturnVals.Fail;
 		}
-		
-		//FSReturnVals result = cs.chunkServerAppendRecord(ofh, payload, RecordID);
-		//System.out.println("append result: " + result);
-		//return result;
 	}
 
 	/**
@@ -170,8 +158,35 @@ public class ClientRec {
 	**/
 	public FSReturnVals ReadFirstRecord(FileHandle ofh, TinyRec rec, int chunkNum){
 		//System.out.println("----FETCHING FIRST RECORD----");
-		FSReturnVals result = cs.chunkServerReadFirstRecord(ofh, rec, chunkNum);
-		return result;
+		try {
+			oos.writeInt(ChunkServer.ReadFirstRecordCMD);
+			Master.sendString(oos, ofh.getFileDir());
+			Master.sendString(oos, ofh.getFileName());
+			oos.writeInt(chunkNum);
+			oos.flush();
+			
+			
+			int payloadLength = Master.getPayloadInt(ois);
+			byte[] payload = Client.RecvPayload("client", ois, payloadLength);
+			
+			
+			String filepath = Master.readString(ois);
+			String chunk = Master.readString(ois);
+			int offset = Master.getPayloadInt(ois);
+			int length = Master.getPayloadInt(ois);
+			RID recordID = new RID(filepath, chunk, offset, length);
+			
+			rec.setPayload(payload);
+			rec.setRID(recordID);
+			
+			System.out.println("\t" + "done with readfirstrecord");
+			
+			String result = Master.readString(ois);
+			return FSReturnVals.valueOf(result);
+		} catch(IOException ioe) {
+			System.out.println("clientrec readfirstrecord ioe: " + ioe.getMessage());
+			return FSReturnVals.Fail;
+		}
 	}
 	
 	
@@ -203,9 +218,35 @@ public class ClientRec {
 	 */
 	public FSReturnVals ReadNextRecord(FileHandle ofh, RID pivot, TinyRec rec){
 		System.out.println("----FETCHING NEXT RECORD----");
-		FSReturnVals result = cs.chunkServerReadNextRecord(ofh, pivot, rec);
-		System.out.println("result: " + result);
-		return result;
+		
+		
+		
+		try {
+			oos.writeInt(ChunkServer.ReadNextRecordCMD);
+			oos.writeObject(ofh);
+			oos.writeObject(pivot);
+			oos.writeObject(rec);
+			oos.flush();
+			
+			
+			int payloadLength = Master.getPayloadInt(ois);
+			byte[] payload = Client.RecvPayload("client", ois, payloadLength);
+			
+			TinyRec rc = null;
+			try {
+				rc = (TinyRec) ois.readObject();
+			} catch(ClassNotFoundException cnfe) {}
+			
+			rec.setPayload(rc.getPayload());
+			rec.setRID(rc.getRID());
+			System.out.println("\t" + "done with readnextrecord");
+			
+			String result = Master.readString(ois);
+			return FSReturnVals.valueOf(result);
+		} catch(IOException ioe) {
+			ioe.printStackTrace(System.out);
+			return FSReturnVals.Fail;
+		}
 	}
 
 	/**

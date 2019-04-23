@@ -1,6 +1,6 @@
 package com.client;
 
-public class TinyRec {
+public class TinyRec implements java.io.Serializable {
 	private byte[] payload = null;
 	private RID ID = null;
 	

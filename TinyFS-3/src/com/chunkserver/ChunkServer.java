@@ -59,6 +59,8 @@ public class ChunkServer implements ChunkServerInterface {
 	public static final int ReadNextRecordCMD = 108;
 	public static final int ReadPrevRecordCMD = 109;
 	
+	public static final int ReadFirstRecordOfChunkCMD = 110;
+	
 	//Replies provided by the server
 	public static final int TRUE = 1;
 	public static final int FALSE = 0;
@@ -631,6 +633,36 @@ public class ChunkServer implements ChunkServerInterface {
 						WriteOutput.writeInt((int) recordID.getLength());
 						Master.sendResultToClient(WriteOutput, result);
 						break;
+						
+					case ReadFirstRecordOfChunkCMD:
+						fileDir = Master.readString(ReadInput);
+						fileName = Master.readString(ReadInput);
+						int chunkNum = Master.getPayloadInt(ReadInput);
+						ofh = new FileHandle(fileDir, fileName);
+						rec = new TinyRec();
+						result = chunkServerReadFirstRecord(ofh, rec, chunkNum);
+						
+						WriteOutput.writeInt(rec.getPayload().length);
+						WriteOutput.write(rec.getPayload());
+						
+						recordID = rec.getRID();
+						Master.sendString(WriteOutput, recordID.getFilepath());
+						Master.sendString(WriteOutput, recordID.getChunk());
+						WriteOutput.writeInt((int) recordID.getOffset());
+						WriteOutput.writeInt((int) recordID.getLength());
+						Master.sendResultToClient(WriteOutput, result);
+						break;
+						
+					case ReadNextRecordCMD:
+						try {
+							FileHandle fh = (FileHandle) ReadInput.readObject();
+							RID pivot = (RID) ReadInput.readObject();
+							rec = (TinyRec) ReadInput.readObject();
+							result = chunkServerReadNextRecord(fh, pivot, rec);
+							
+							WriteOutput.writeObject(rec);
+							Master.sendResultToClient(WriteOutput, result);
+						} catch(ClassNotFoundException cnfe) {}
 						
 					/*
 					public static final int AppendRecordCMD = 104;
