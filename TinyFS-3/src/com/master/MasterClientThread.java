@@ -125,7 +125,7 @@ public class MasterClientThread extends Thread {
 			System.out.println("Error in client thread communication: " + e.getMessage());
 		}
 		System.out.println("Client connection terminated ");
-		
+		m.cleanMaster();
 	}
 
 

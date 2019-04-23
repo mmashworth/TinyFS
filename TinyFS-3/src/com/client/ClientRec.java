@@ -63,7 +63,7 @@ public class ClientRec {
 	 */
 	public FSReturnVals AppendRecord(FileHandle ofh, byte[] payload, RID RecordID) {
 		
-		System.out.println("----APPENDING RECORD----");
+		//System.out.println("----APPENDING RECORD----");
 		try {
 			oos.writeInt(ChunkServer.AppendRecordCMD);
 			Master.sendString(oos, ofh.getFileDir());
@@ -76,9 +76,7 @@ public class ClientRec {
 			String chunk = Master.readString(ois);
 			int offset = Master.getPayloadInt(ois);
 			int length = Master.getPayloadInt(ois);
-			
-			System.out.println("\t" + offset + chunk);
-			
+						
 			String result = Master.readString(ois);
 			return FSReturnVals.valueOf(result);
 		} catch(IOException ioe) {
@@ -98,8 +96,7 @@ public class ClientRec {
 	 * Example usage: DeleteRecord(FH1, RecID1)
 	 */
 	public FSReturnVals DeleteRecord(FileHandle ofh, RID RecordID) {
-		System.out.println("----DELETING RECORD----");
-		
+		//System.out.println("----DELETING RECORD----");
 		
 		try {
 			oos.writeInt(ChunkServer.DeleteRecordCMD);
@@ -125,8 +122,7 @@ public class ClientRec {
 	 * Example usage: ReadFirstRecord(FH1, tinyRec)
 	 */
 	public FSReturnVals ReadFirstRecord(FileHandle ofh, TinyRec rec){
-		System.out.println("----FETCHING FIRST RECORD----");
-		
+		//System.out.println("----FETCHING FIRST RECORD----");
 		
 		try {
 			oos.writeInt(ChunkServer.ReadFirstRecordCMD);
@@ -190,9 +186,7 @@ public class ClientRec {
 			
 			rec.setPayload(payload);
 			rec.setRID(recordID);
-			
-			System.out.println("\t" + "done with readfirstrecord");
-			
+						
 			String result = Master.readString(ois);
 			return FSReturnVals.valueOf(result);
 		} catch(IOException ioe) {
@@ -212,7 +206,7 @@ public class ClientRec {
 	 * Example usage: ReadLastRecord(FH1, tinyRec)
 	 */
 	public FSReturnVals ReadLastRecord(FileHandle ofh, TinyRec rec){
-		System.out.println("----FETCHING LAST RECORD----");
+		//System.out.println("----FETCHING LAST RECORD----");
 			
 		try {
 			oos.writeInt(ChunkServer.ReadLastRecordCMD);
@@ -229,7 +223,7 @@ public class ClientRec {
 			rec.setRID(rc.getRID());
 			
 			String result = Master.readString(ois);
-			System.out.println("result: " + result);
+			//System.out.println("result: " + result);
 			return FSReturnVals.valueOf(result);
 		} catch(IOException ioe) {
 			System.out.println("clientrec readfirstrecord ioe: " + ioe.getMessage());
@@ -248,7 +242,7 @@ public class ClientRec {
 	 * rec1, tinyRec2) 3. ReadNextRecord(FH1, rec2, tinyRec3)
 	 */
 	public FSReturnVals ReadNextRecord(FileHandle ofh, RID pivot, TinyRec rec){
-		System.out.println("----FETCHING NEXT RECORD----");
+		//System.out.println("----FETCHING NEXT RECORD----");
 		
 		try {
 			oos.writeInt(ChunkServer.ReadNextRecordCMD);
@@ -265,7 +259,7 @@ public class ClientRec {
 			
 			rec.setPayload(rc.getPayload());
 			rec.setRID(rc.getRID());
-			System.out.println("\t" + "done with readnextrecord");
+			//System.out.println("\t" + "done with readnextrecord");
 			
 			String result = Master.readString(ois);
 			return FSReturnVals.valueOf(result);
@@ -284,7 +278,7 @@ public class ClientRec {
 	 * recn-1, tinyRec2) 3. ReadPrevRecord(FH1, recn-2, tinyRec3)
 	 */
 	public FSReturnVals ReadPrevRecord(FileHandle ofh, RID pivot, TinyRec rec){
-		System.out.println("----FETCHING PREV RECORD----");
+		//System.out.println("----FETCHING PREV RECORD----");
 		
 		
 		try {

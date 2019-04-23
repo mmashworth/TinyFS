@@ -78,6 +78,12 @@ public class Master {
 	
 	private Map<String, String> fileToChunkMap;
 	
+	public void cleanMaster() {
+		namespace = new HashMap<>();
+		namespace.put("/", new ArrayList<String>());
+		clientThreads = new Vector<>();
+		dirToFiles = new HashMap<>();	
+	}
 
 	public Master() {
 		namespace = new HashMap<>();
@@ -103,12 +109,12 @@ public class Master {
 			System.out.println("Master bound to port: " + port);
 			
 			//get ip address
-			try { 
-				ip = InetAddress.getLocalHost().toString();	            
-	        } catch (UnknownHostException e) { System.out.println("start master error: " + e.getMessage()); }
+			//try { 
+				//ip = InetAddress.getLocalHost().toString();	            
+	        //} catch (UnknownHostException e) { System.out.println("start master error: " + e.getMessage()); }
 			
 			//Write port to config file
-			System.out.println("Writing port to file");
+			//System.out.println("Writing port to file");
 			FileWriter fw = new FileWriter(configFilePath);
 			PrintWriter pw = new PrintWriter(fw);
 			pw.println("port : " + Integer.toString(port));
@@ -158,10 +164,10 @@ public class Master {
 		
 		//return if src already contains dirName
 		List<String> srcContents = namespace.get(src);
-		if(srcContents.contains(dirName)) return FSReturnVals.DestDirExists;
+		if(srcContents.contains(dirName)) return FSReturnVals.Success;
 		
 		//else add dirName to src and the new dir to the namespace
-		System.out.println("Added " + src + dirName + " to the namespace");
+		//System.out.println("Added " + src + dirName + " to the namespace");
 		namespace.get(src).add(dirName);
 		namespace.put(src + dirName, new ArrayList<String>());
 		
@@ -188,7 +194,7 @@ public class Master {
 			namespace.get(src).remove(dirName);
 			//remove the actual dir
 			namespace.remove(targetPath);
-			printNamespace();
+			//printNamespace();
 			return FSReturnVals.DestDirExists;
 		}
 
@@ -285,7 +291,7 @@ public class Master {
 				
 				//if there are no more files in that List, remove the key
 				if(dirToFiles.get(tgtdir).size() == 0) {
-					System.out.println("Removing dir " + tgtdir + " from map");
+					//System.out.println("Removing dir " + tgtdir + " from map");
 					dirToFiles.remove(tgtdir);
 				}
 				return FSReturnVals.Success;

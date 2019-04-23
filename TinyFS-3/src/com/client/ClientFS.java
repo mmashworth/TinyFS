@@ -276,8 +276,6 @@ public class ClientFS {
 		try {
 			oos.writeInt(Master.OPEN_FILE);
 			Master.sendString(oos, filepath);
-			//Master.sendString(oos, ofh.getFileDir());
-			//Master.sendString(oos, ofh.getFileName());
 			oos.flush();
 			System.out.println("waiting for response from master now");
 			
@@ -303,7 +301,6 @@ public class ClientFS {
 	public FSReturnVals CloseFile(FileHandle ofh) {
 		ofh = null; //what else does this need to do???
 		return FSReturnVals.Success;
-//		return null;
 	}
 	
 	

@@ -23,6 +23,7 @@ public class UnitTest1 {
 	}
 	
 	public static void test1(ClientFS cfs){
+		
 		System.out.println(TestName + "Create dir /Shahram, /Shahram/1, /Shahram/2, /Shahram/3, ... /Shahram/N and verify them.");
 		String dir1 = "Shahram";
 		FSReturnVals fsrv = cfs.CreateDir("/", dir1);
@@ -65,7 +66,7 @@ public class UnitTest1 {
 		for(int i = 1; i <= N; i++){
 			fsrv = cfs.CreateDir(prev + "/", String.valueOf(i));
 			if( fsrv != FSReturnVals.Success ){
-				System.out.println("Unit test 1 result: fail!5");
+				System.out.println("Unit test 1 result: fail!5 " + fsrv);
 	    		return;
 			}
 			prev = prev + "/" + i;
