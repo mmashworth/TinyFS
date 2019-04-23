@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 
+import com.interfaces.ClientInterface;
 import com.master.Master;
 import java.util.List;
 import java.util.ArrayList;
@@ -36,7 +37,6 @@ public class ClientFS {
 		NotImplemented,    // Specific to CSCI 485 and its unit tests
 		Success,           // Returned when a method succeeds
 		Fail               // Returned when a method fails
-		
 		
 	}
 
@@ -69,6 +69,7 @@ public class ClientFS {
 			s = new Socket(masterIP, masterPort);
 			
 			oos = new ObjectOutputStream(s.getOutputStream());
+			oos.writeInt(ClientInterface.CLIENT_CONNEC); //let the master know this is a client connection
 			oos.flush();
 	
 			ois = new ObjectInputStream(s.getInputStream());

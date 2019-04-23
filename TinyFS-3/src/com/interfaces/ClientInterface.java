@@ -10,6 +10,7 @@ import java.util.HashMap;
  */
 public interface ClientInterface {
 	
+	public static final int CLIENT_CONNEC = 2; //connection is from a chunk client
 	
 	
 	/**

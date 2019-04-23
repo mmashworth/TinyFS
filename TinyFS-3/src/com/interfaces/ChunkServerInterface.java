@@ -9,6 +9,7 @@ import java.io.File;
  */
 public interface ChunkServerInterface {
 
+	public static final int SERVER_CONNEC = 1; //connection is from a chunk server
 	public static final int ChunkSize = 4 * 1024; //4 KB chunk sizes
 	
 	/**

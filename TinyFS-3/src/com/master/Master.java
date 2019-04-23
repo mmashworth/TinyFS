@@ -18,6 +18,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.TreeMap;
 
 import com.client.ClientFS.FSReturnVals;
@@ -60,7 +61,12 @@ public class Master {
 	private static int port;
 	private static String ip;
 	
+	public static final int SERVER_CONNEC = 1; //connection is from a chunk server
+	public static final int CLIENT_CONNEC = 2; //connection is from a chunk client
+	
+	
 	public static String configFilePath = "TinyFS-3/MasterConfig.txt/";
+	private Vector<MasterClientThread> clientThreads;
 	
 	//maps from a filepath to the contents of that directory
 	private Map<String, List<String> > namespace;
@@ -76,7 +82,7 @@ public class Master {
 	public Master() {
 		namespace = new HashMap<>();
 		namespace.put("/", new ArrayList<String>());
-		
+		clientThreads = new Vector<>();
 		dirToFiles = new HashMap<>();
 		
 		port = 0;
@@ -118,88 +124,28 @@ public class Master {
 		//continually listen on this port for new connections
 		while(true) {
 			try {
-				//when new client connects, create new socket to communicate through
+				//when new client/server connects, create new socket to communicate through
 				s = ss.accept();
 				System.out.println("Connection from: " + s.getInetAddress());
 				
-				oos = new ObjectOutputStream(s.getOutputStream());
-				ois = new ObjectInputStream(s.getInputStream());
+				ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
+				ObjectInputStream ois = new ObjectInputStream(s.getInputStream());
 				
-				//continue reading requests until it is closed
-				while(!s.isClosed()) {					
-					//read in command identifier and switch based on that
-					int command = getPayloadInt(ois);
-					if(command != -1) System.out.println("Received command: " + command);
-					
-					String param1 = null, param2 = null, param3 = null;
-					
-					if(command == 4 || command == 7) {
-						param1 = m.readString(ois);
-					}
-					else if(command >= 1 && command <= 6) {
-						param1 = m.readString(ois);
-						param2 = m.readString(ois);
-					}
-					else if(command == 8) {
-						param1 = m.readString(ois);
-						param2 = m.readString(ois);
-						param3 = m.readString(ois);
-					}
-					
-					if(command == CREATE_DIR) {
-						FSReturnVals result = m.masterCreateDir(param1, param2);
-						sendResultToClient(oos, result);
-					}
-					else if(command == DELETE_DIR) {
-						FSReturnVals result = m.masterDeleteDir(param1, param2);
-						byte[] result_bytes = result.toString().getBytes();
-						sendResultToClient(oos, result);
-					}
-					else if(command == RENAME_DIR) {
-						FSReturnVals result = m.masterRenameDir(param1, param2);
-						sendResultToClient(oos, result);
-					}
-					else if(command == LIST_DIR) {
-						String[] results = m.masterListDir(param1);
-						oos.writeInt(results.length);
-						for(String s : results) {
-							sendString(oos, s);
-						}
-						oos.flush();
-					}
-					else if(command == CREATE_FILE) {
-						FSReturnVals result = m.masterCreateFile(param1, param2);
-						sendResultToClient(oos, result);
-					}
-					else if(command == DELETE_FILE) {
-						FSReturnVals result = m.masterDeleteFile(param1, param2);
-						sendResultToClient(oos, result);
-					}
-					else if(command == OPEN_FILE) {
-						FileHandle ofh = new FileHandle();
-						FSReturnVals result = m.masterOpenFile(param1, ofh);
-						System.out.println("result: " + result);
-						sendString(oos, ofh.getFileDir());
-						sendString(oos, ofh.getFileName());
-						sendResultToClient(oos, result);
-					}
-					else if(command == CLOSE_FILE) {
-						FileHandle fh = new FileHandle(param2, param3);
-						m.masterOpenFile(param1, fh);
-						m.masterCloseFile(param1, fh);
-					}
-					else {
-						//System.out.println("Could not parse command");
-					}
+				//get whether connection is from a client or a server
+				int connec_type = getPayloadInt(ois);
+				
+				if( connec_type == CLIENT_CONNEC) {
+					System.out.println("Recieved a new client connection.");
+					MasterClientThread client = new MasterClientThread( s, m, oos, ois);
+					m.clientThreads.add(client);
+				} else if ( connec_type == SERVER_CONNEC) {
+					//TODO
 				}
 			} catch(IOException ioe) {
 				System.out.println(ioe.getMessage());
 			}
 		} //end of while loop	
 	} //end of start master
-	
-	
-	
 	
 	
 	/*
