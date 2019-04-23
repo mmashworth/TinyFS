@@ -119,7 +119,22 @@ public class ClientFS {
 	 * Example usage: DeleteDir("/Shahram/CSCI485/", "Lecture1")
 	 */
 	public FSReturnVals DeleteDir(String src, String dirname) {
-		return m.masterDeleteDir(src, dirname);	
+		try {
+			oos.writeInt(Master.DELETE_DIR);
+			Master.sendString(oos, src);
+			Master.sendString(oos, dirname);
+			oos.flush();
+			
+			String result = new String(Master.readString(ois));
+			return FSReturnVals.valueOf(result);
+			
+			//read in result from master
+			
+		} catch(IOException ioe) {
+			return FSReturnVals.Fail;
+		}
+
+		//return m.masterCreateDir(src, dirname);
 	}
 	
 	//unnecessary, thought we deleted a dir even if it had files in it
@@ -148,7 +163,20 @@ public class ClientFS {
 	 * "/Shahram/CSCI485" to "/Shahram/CSCI550"
 	 */
 	public FSReturnVals RenameDir(String src, String newName) {
-		return m.masterRenameDir(src, newName);
+		try {
+			oos.writeInt(Master.RENAME_DIR);
+			Master.sendString(oos, src);
+			Master.sendString(oos, newName);
+			oos.flush();
+			
+			String result = new String(Master.readString(ois));
+			return FSReturnVals.valueOf(result);
+			
+			//read in result from master
+			
+		} catch(IOException ioe) {
+			return FSReturnVals.Fail;
+		}
 	}
 
 	/**
@@ -188,12 +216,17 @@ public class ClientFS {
 	 * Example usage: Createfile("/Shahram/CSCI485/Lecture1/", "Intro.pptx")
 	 */
 	public FSReturnVals CreateFile(String tgtdir, String filename) {
-//		System.out.println("---CREATING FILE---");
-//		System.out.println("\ttgtdir: " + tgtdir);
-//		System.out.println("\tfilename: " + filename);
-		
-		
-		return m.masterCreateFile(tgtdir, filename);
+		try {
+			oos.writeInt(Master.CREATE_FILE);
+			Master.sendString(oos, tgtdir);
+			Master.sendString(oos, filename);
+			oos.flush();
+			
+			String result = new String(Master.readString(ois));
+			return FSReturnVals.valueOf(result);
+		} catch(IOException ioe) {
+			return FSReturnVals.Fail;
+		}
 	}
 
 	/**
@@ -205,13 +238,17 @@ public class ClientFS {
 	 * Example usage: DeleteFile("/Shahram/CSCI485/Lecture1/", "Intro.pptx")
 	 */
 	public FSReturnVals DeleteFile(String tgtdir, String filename) {
-//		System.out.println("---DELETING FILE----");
-//		System.out.println("\ttgtdir: " + tgtdir);
-//		System.out.println("\tfilename: " + filename);
-		
-		FSReturnVals result =  m.masterDeleteFile(tgtdir, filename);
-		System.out.println("deletion result: " + result);
-		return result;
+		try {
+			oos.writeInt(Master.DELETE_FILE);
+			Master.sendString(oos, tgtdir);
+			Master.sendString(oos, filename);
+			oos.flush();
+			
+			String result = new String(Master.readString(ois));
+			return FSReturnVals.valueOf(result);
+		} catch(IOException ioe) {
+			return FSReturnVals.Fail;
+		}
 	}
 
 	/**

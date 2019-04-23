@@ -147,20 +147,16 @@ public class Master {
 					
 					if(command == CREATE_DIR) {
 						FSReturnVals result = m.masterCreateDir(param1, param2);
-						byte[] result_bytes = result.toString().getBytes();
-						try {
-							oos.writeInt(result_bytes.length);
-							oos.write(result_bytes);
-							oos.flush();
-						} catch(IOException ioe) {
-							System.out.println("sendStringToMaster ioe: " + ioe.getMessage());
-						}
+						sendResultToClient(result);
 					}
 					else if(command == DELETE_DIR) {
-						m.masterDeleteDir(param1, param2);
+						FSReturnVals result = m.masterDeleteDir(param1, param2);
+						byte[] result_bytes = result.toString().getBytes();
+						sendResultToClient(result);
 					}
 					else if(command == RENAME_DIR) {
-						m.masterRenameDir(param1, param2);
+						FSReturnVals result = m.masterRenameDir(param1, param2);
+						sendResultToClient(result);
 					}
 					else if(command == LIST_DIR) {
 						String[] results = m.masterListDir(param1);
@@ -171,10 +167,12 @@ public class Master {
 						oos.flush();
 					}
 					else if(command == CREATE_FILE) {
-						m.masterCreateFile(param1, param2);
+						FSReturnVals result = m.masterCreateFile(param1, param2);
+						sendResultToClient(result);
 					}
 					else if(command == DELETE_FILE) {
-						m.masterDeleteFile(param1, param2);
+						FSReturnVals result = m.masterDeleteFile(param1, param2);
+						sendResultToClient(result);
 					}
 					else if(command == OPEN_FILE) {
 						FileHandle fh = new FileHandle(param2, param3);
@@ -448,8 +446,18 @@ public class Master {
 	 * methods for getting ints/strings from streams
 	 */
 	
+	public static void sendResultToClient(FSReturnVals result) {
+		byte[] result_bytes = result.toString().getBytes();
+		try {
+			oos.writeInt(result_bytes.length);
+			oos.write(result_bytes);
+			oos.flush();
+		} catch(IOException ioe) {
+			System.out.println("sendStringToMaster ioe: " + ioe.getMessage());
+		}
+	}
+	
 	public static void sendString(ObjectOutputStream oos, String s) {
-		System.out.println("Sending: " + s + " to master.");
 		byte[] s_bytes = s.getBytes();
 		try {
 			oos.writeInt(s_bytes.length);
@@ -476,7 +484,6 @@ public class Master {
 	public static String readString(ObjectInputStream ois) {
 		try {
 			int payloadSize = getPayloadInt(ois);
-			System.out.println("String of length: " + payloadSize);
 			
 			byte[] payload = new byte[payloadSize];
 			byte[] temp = new byte[payloadSize];
@@ -510,7 +517,6 @@ public class Master {
 			}
 			
 			String result = new String(payload);
-			System.out.println("Master read in string: " + result);
 			return result;
 			
 			
