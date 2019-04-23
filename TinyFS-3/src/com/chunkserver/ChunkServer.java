@@ -38,8 +38,8 @@ import com.client.TinyRec;
  */
 
 public class ChunkServer implements ChunkServerInterface {
-	final static String rootFilePath = "TinyFS-3/csci485/";	//or C:\\newfile.txt
-	public final static String ClientConfigFile = "TinyFS-3/ClientConfig.txt";
+	final static String rootFilePath = "/csci485/";	//or C:\\newfile.txt
+	public final static String ClientConfigFile = "ClientConfig.txt";
 	
 	//Used for the file system
 	public static long counter;
@@ -96,7 +96,7 @@ public class ChunkServer implements ChunkServerInterface {
 		
 		//if the file has no chunks, add it to the list
 		if(!fileToChunks.containsKey(filepath)) {
-			fileToChunks.put(filepath, new ArrayList<>());		
+			fileToChunks.put(filepath, new ArrayList<String>());
 		}
 		
 		RandomAccessFile currFile = getFile(totalFilepath, filename);
@@ -233,13 +233,13 @@ public class ChunkServer implements ChunkServerInterface {
 				chunkToRecs.get(chunkHandle).remove(recs);
 				break;
 			}
-				
 		}
 		System.out.println("new size: " + chunkToRecs.get(chunkHandle).size());
 
 		freeRecord(filepath, chunkNum, recordID);
 		return FSReturnVals.Success;
 	}
+	
 	
 	public void freeRecord(String filepath, int chunkNum, RID rid) {
 		System.out.println("offset --> " + rid.getOffset());
@@ -306,7 +306,7 @@ public class ChunkServer implements ChunkServerInterface {
 		System.out.println("----READING LAST RECORD OF LAST CHUNK----");
 		String filepath = fh.getFileDir() + fh.getFileName();
 		String numChunks = Integer.toString(  fileToChunks.get(filepath).size()  );
-		
+
 		String chunkHandle = filepath + numChunks;
 		
 		//file has no chunks yet
@@ -332,6 +332,7 @@ public class ChunkServer implements ChunkServerInterface {
 		
 		return FSReturnVals.Success;
 	}
+	
 	public FSReturnVals chunkServerReadLastRecord(FileHandle fh, TinyRec rec, int chunkNum) {
 		System.out.println("----READING LAST RECORD OF SOME CHUNK----");
 		String filepath = fh.getFileDir() + fh.getFileName();
@@ -385,7 +386,6 @@ public class ChunkServer implements ChunkServerInterface {
 			}
 		}
 		
-
 		
 		if(prevRecord == null) { //try the next chunk
 			int prevChunk = Integer.parseInt(pivot.getChunk()) - 1;
@@ -413,6 +413,7 @@ public class ChunkServer implements ChunkServerInterface {
 		
 		return FSReturnVals.Success;
 	}
+	
 	//TODO: will have to be able to hop from the end of a chunk to the beginning of another
 	public FSReturnVals chunkServerReadNextRecord(FileHandle fh, RID pivot, TinyRec rec) {
 		//System.out.println("\tpivot offset: " + pivot.getOffset());
@@ -463,7 +464,25 @@ public class ChunkServer implements ChunkServerInterface {
 		return FSReturnVals.Success;
 	}
 	
-
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/* Returns a file with the filepath and filename
 	 * 
 	 * If the file exists, return the existing file
@@ -488,7 +507,12 @@ public class ChunkServer implements ChunkServerInterface {
 		return null;
 
 	}
-		
+	
+	
+	
+	
+	
+	
 	/**
 	 * Initialize the chunk server
 	 */
@@ -499,7 +523,7 @@ public class ChunkServer implements ChunkServerInterface {
 		fileToChunks = new HashMap<String, List<String>>();
 		chunkToRecs = new HashMap<String, LinkedList<RID>>() ;
 
-		if(fs != null) {
+		if (fs != null) {
 			if(fs.length == 0){
 				counter = 0;
 			}else{
@@ -508,9 +532,9 @@ public class ChunkServer implements ChunkServerInterface {
 					try {
 						cntrs[j] = Long.valueOf( fs[j].getName() ); 
 					} catch(NumberFormatException nfe) {
-
+						
 					}
-
+				
 				Arrays.sort(cntrs);
 				counter = cntrs[cntrs.length - 1];
 			}
@@ -566,6 +590,9 @@ public class ChunkServer implements ChunkServerInterface {
 		}
 	}
 	
+
+
+	
 	
 	public void ReadAndProcessRequests()
 	{
@@ -594,20 +621,17 @@ public class ChunkServer implements ChunkServerInterface {
 		Socket ClientConnection = null;  //A client's connection to the server
 
 		while (!done){
-			try {				
+			try {
 				System.out.println("Waiting for connections on port: " + ServerPort);
-
 				ClientConnection = commChanel.accept();
 				ReadInput = new ObjectInputStream(ClientConnection.getInputStream());
 				WriteOutput = new ObjectOutputStream(ClientConnection.getOutputStream());
 				System.out.println("Chunkserver got connection");
+				
 				//Use the existing input and output stream as long as the client is connected
 				while (!ClientConnection.isClosed()) {
-					
 					int CMD = Master.getPayloadInt(ReadInput);
-					
 					if(CMD != -1) System.out.println("Received command: " + CMD);
-					
 					switch (CMD){
 					case AppendRecordCMD:
 						String fileDir = Master.readString(ReadInput);
@@ -691,7 +715,6 @@ public class ChunkServer implements ChunkServerInterface {
 							FileHandle fh = (FileHandle) ReadInput.readObject();
 							RID rid = (RID) ReadInput.readObject();
 							result = chunkServerDeleteRecord(fh, rid);
-
 							Master.sendResultToClient(WriteOutput, result);
 						} catch(ClassNotFoundException cnfe) {}
 						break;
@@ -701,7 +724,6 @@ public class ChunkServer implements ChunkServerInterface {
 							FileHandle fh = (FileHandle) ReadInput.readObject();
 							rec = (TinyRec) ReadInput.readObject();
 							result = chunkServerReadLastRecord(fh, rec);
-
 							WriteOutput.writeObject(rec);
 							Master.sendResultToClient(WriteOutput, result);
 						} catch(ClassNotFoundException cnfe) {}
@@ -762,6 +784,7 @@ public class ChunkServer implements ChunkServerInterface {
 						WriteOutput.flush();
 						break;
 						*/
+
 					default:
 						//System.out.println("Error in ChunkServer, specified CMD "+CMD+" is not recognized.");
 						break;

@@ -1,6 +1,6 @@
 package com.client;
 
-public class FileHandle implements java.io.Serializable {
+public class FileHandle {
 	//A file is uniquely identified by its directory path and its name (no duplicates).
 	//might have to add in which chunk(s) it belongs to as well
 	private String dir;

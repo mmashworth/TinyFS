@@ -12,7 +12,6 @@ public interface ClientInterface {
 	
 	public static final int CLIENT_CONNEC = 2; //connection is from a chunk client
 	
-	
 	/**
 	 * Return the chunkhandle for a newly created chunk.
 	 */

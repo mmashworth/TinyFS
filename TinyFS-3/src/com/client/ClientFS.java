@@ -20,7 +20,6 @@ public class ClientFS {
 	private static ObjectInputStream ois;
 	private static Socket s;
 
-
 	public static final String root = "csci485";
 	
 	public enum FSReturnVals {
@@ -38,8 +37,9 @@ public class ClientFS {
 		Success,           // Returned when a method succeeds
 		Fail               // Returned when a method fails
 		
+		
 	}
-
+	
 	private static String masterIP = "127.0.0.1";
 	private static int masterPort;
 	
@@ -57,7 +57,6 @@ public class ClientFS {
 			fr.close();
 			masterPort = Integer.parseInt(lastEntry.substring(lastEntry.indexOf(':')+2));
 			connectToMaster();
-			
 	
 		} catch(IOException ioe) {
 			System.out.println("ioe in Client constructor: " + ioe.getMessage());
@@ -87,9 +86,6 @@ public class ClientFS {
 			System.out.println("disconnectFromMaster ioe: " + ioe.getMessage());	
 		}
 	}
-	
-	
-	
 	
 	
 	/**
@@ -146,8 +142,8 @@ public class ClientFS {
 		} catch(IOException ioe) {
 			return FSReturnVals.Fail;
 		}
-
-		//return m.masterCreateDir(src, dirname);
+		
+		// return m.masterDeleteDir(src, dirname);	
 	}
 	
 	//unnecessary, thought we deleted a dir even if it had files in it
@@ -190,6 +186,8 @@ public class ClientFS {
 		} catch(IOException ioe) {
 			return FSReturnVals.Fail;
 		}
+		
+		// return m.masterRenameDir(src, newName);
 	}
 
 	/**
@@ -218,6 +216,8 @@ public class ClientFS {
 		} catch(IOException ioe) {
 			return null;
 		}
+		
+		// return m.masterListDir(tgt);
 	}
 
 	/**
@@ -229,6 +229,10 @@ public class ClientFS {
 	 * Example usage: Createfile("/Shahram/CSCI485/Lecture1/", "Intro.pptx")
 	 */
 	public FSReturnVals CreateFile(String tgtdir, String filename) {
+//		System.out.println("---CREATING FILE---");
+//		System.out.println("\ttgtdir: " + tgtdir);
+//		System.out.println("\tfilename: " + filename);
+		
 		try {
 			oos.writeInt(Master.CREATE_FILE);
 			Master.sendString(oos, tgtdir);
@@ -240,6 +244,8 @@ public class ClientFS {
 		} catch(IOException ioe) {
 			return FSReturnVals.Fail;
 		}
+		
+		//return m.masterCreateFile(tgtdir, filename);
 	}
 
 	/**
@@ -251,6 +257,10 @@ public class ClientFS {
 	 * Example usage: DeleteFile("/Shahram/CSCI485/Lecture1/", "Intro.pptx")
 	 */
 	public FSReturnVals DeleteFile(String tgtdir, String filename) {
+//		System.out.println("---DELETING FILE----");
+//		System.out.println("\ttgtdir: " + tgtdir);
+//		System.out.println("\tfilename: " + filename);
+		
 		try {
 			oos.writeInt(Master.DELETE_FILE);
 			Master.sendString(oos, tgtdir);
@@ -262,6 +272,10 @@ public class ClientFS {
 		} catch(IOException ioe) {
 			return FSReturnVals.Fail;
 		}
+		
+		/*FSReturnVals result =  m.masterDeleteFile(tgtdir, filename);
+		System.out.println("deletion result: " + result);
+		return result;*/
 	}
 
 	/**
@@ -273,6 +287,8 @@ public class ClientFS {
 	 * Example usage: OpenFile("/Shahram/CSCI485/Lecture1/Intro.pptx", FH1)
 	 */
 	public FSReturnVals OpenFile(String filepath, FileHandle ofh) {
+		//System.out.println("---OPENING FILE---");
+		
 		try {
 			oos.writeInt(Master.OPEN_FILE);
 			Master.sendString(oos, filepath);
@@ -293,6 +309,10 @@ public class ClientFS {
 		} catch(IOException ioe) {
 			return FSReturnVals.Fail;
 		}
+
+		/*FSReturnVals result =  m.masterOpenFile(filepath, ofh);
+		System.out.println("open file result: " + result);
+		return result;*/
 	}
 
 	/**
