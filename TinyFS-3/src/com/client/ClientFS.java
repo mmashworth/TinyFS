@@ -18,8 +18,7 @@ public class ClientFS {
 	private static ObjectOutputStream oos;
 	private static ObjectInputStream ois;
 	private static Socket s;
-	private String ip;
-	private int port;
+
 
 	public static final String root = "csci485";
 	
@@ -41,6 +40,8 @@ public class ClientFS {
 		
 	}
 
+	private static String masterIP = "127.0.0.1";
+	private static int masterPort;
 	
 	public ClientFS() {
 		if (s != null) return;
@@ -54,24 +55,37 @@ public class ClientFS {
 				lastEntry = line;
 			}
 			fr.close();
-			port = Integer.parseInt(lastEntry.substring(lastEntry.indexOf(':')+2));
+			masterPort = Integer.parseInt(lastEntry.substring(lastEntry.indexOf(':')+2));
+			connectToMaster();
 			
-			System.out.println("ClientFS got port: " + port);
-			ip = "127.0.0.1";
-	
-			s = new Socket(ip, port);
-			
-			oos = new ObjectOutputStream(s.getOutputStream());
-			oos.flush();
-	
-			ois = new ObjectInputStream(s.getInputStream());
 	
 		} catch(IOException ioe) {
 			System.out.println("ioe in Client constructor: " + ioe.getMessage());
 		}
 	}
 	
+	public void connectToMaster() {
+		try {
+			s = new Socket(masterIP, masterPort);
+			
+			oos = new ObjectOutputStream(s.getOutputStream());
+			oos.flush();
 	
+			ois = new ObjectInputStream(s.getInputStream());
+		
+		} catch(IOException ioe) {
+			System.out.println("connectToMaster ioe: " + ioe.getMessage());
+		}
+	}
+	public void disonnectFromMaster() {
+		try {
+			s.close();
+			oos.close();
+			ois.close();
+		} catch(IOException ioe) {
+			System.out.println("disconnectFromMaster ioe: " + ioe.getMessage());	
+		}
+	}
 	
 	
 	

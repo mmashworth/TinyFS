@@ -60,7 +60,7 @@ public class Master {
 	private static int port;
 	private static String ip;
 	
-	public static String configFilePath = "TinyFS-3/ClientConfig.txt/";
+	public static String configFilePath = "TinyFS-3/MasterConfig.txt/";
 	
 	//maps from a filepath to the contents of that directory
 	private Map<String, List<String> > namespace;
@@ -83,10 +83,11 @@ public class Master {
 	}
 	
 	public static void main(String[] args) {
-		startMaster();
+		Master m = new Master();
+		m.startMaster();
 	}
 	
-	public static void startMaster() {
+	public void startMaster() {
 		Master m = new Master();
 		try {
 			ss = new ServerSocket(port);
