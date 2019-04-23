@@ -277,16 +277,12 @@ public class ClientFS {
 			oos.writeInt(Master.OPEN_FILE);
 			Master.sendString(oos, filepath);
 			oos.flush();
-			System.out.println("waiting for response from master now");
 			
 			String fileDir = Master.readString(ois);
-			System.out.println(fileDir);
 			String fileName = Master.readString(ois);
-			System.out.println(fileName);
 			ofh.setFileDir(fileDir);
 			ofh.setFileName(fileName);
 			String result = new String(Master.readString(ois));
-			System.out.println("result: " + result);
 			return FSReturnVals.valueOf(result);
 		} catch(IOException ioe) {
 			return FSReturnVals.Fail;

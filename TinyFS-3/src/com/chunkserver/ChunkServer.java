@@ -225,17 +225,14 @@ public class ChunkServer implements ChunkServerInterface {
 			//call method insert free record
 				//input: chunkHandle, offset of new free record & length of it
 		
-		//System.out.println("old size: " + chunkToRecs.get(chunkHandle).size());
 		LinkedList<RID> records = chunkToRecs.get(chunkHandle);
 		for(RID recs : records) {
 			if(recs.getOffset() == recordID.getOffset()) {
-				System.out.println("FOUND RECORD");
 				chunkToRecs.get(chunkHandle).remove(recs);
 				break;
 			}
 				
 		}
-		//System.out.println("new size: " + chunkToRecs.get(chunkHandle).size());
 
 		freeRecord(filepath, chunkNum, recordID);
 		return FSReturnVals.Success;
@@ -438,7 +435,6 @@ public class ChunkServer implements ChunkServerInterface {
 		
 		if(nextRecord == null) { //try the next chunk
 			int nextChunk = Integer.parseInt(pivot.getChunk()) + 1;
-			System.out.println("Moving to first record of the next chunk: " + nextChunk );
 			return chunkServerReadFirstRecord(fh, rec, nextChunk);
 		}
 		
@@ -616,7 +612,6 @@ public class ChunkServer implements ChunkServerInterface {
 						String fileName = Master.readString(ReadInput);
 						int size = Master.getPayloadInt(ReadInput);
 						byte[] payload = Client.RecvPayload("g", ReadInput, size);
-						System.out.println(fileDir+fileName + ", "+ size);
 						
 						RID recordID = new RID();
 						FSReturnVals result = chunkServerAppendRecord(new FileHandle(fileDir, fileName), payload, recordID);

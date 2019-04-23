@@ -142,7 +142,6 @@ public class UnitTest6 {
 			byte[] contentBytes = getBytesFromFile(new File("TinyFS-3/SuperHeros/" + filename + ".jpg"), size);
 			byte[] sizeBytes = ByteBuffer.allocate(intSize).putInt((int)size).array();
 			imagePL = img1.getPayload(); //what was stored in the file system
-			System.out.println("-----------> " + imagePL.length);
 			for(int j = 0; j < imagePL.length; j++){
 				if(j < 4){
 					if(imagePL[j] != indexBytes[j]){
@@ -166,8 +165,6 @@ public class UnitTest6 {
 			size = sizeBytes.length;
 			sizeBytes = ByteBuffer.allocate(intSize).putInt(sizeBytes.length).array();
 			namePL = name1.getPayload();
-			System.out.println("-----------> " + namePL.length);
-
 			for(int j = 0; j < namePL.length; j++){
 				if(j < 4){
 					if(namePL[j] != indexBytes[j]){
@@ -214,7 +211,6 @@ public class UnitTest6 {
 	
 	
 	public static byte[] getBytesFromFile(File file, long length) throws IOException {
-		System.out.println(file.getAbsolutePath());
 	       InputStream is = new FileInputStream(file);
 	    
 	       length = file.length();

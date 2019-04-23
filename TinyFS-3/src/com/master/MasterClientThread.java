@@ -57,7 +57,7 @@ public class MasterClientThread extends Thread {
 			while((command = Master.getPayloadInt(ois)) != -1) {
 	
 				//read in command identifier and switch based on that
-				System.out.println("Received command: " + command);
+				//System.out.println("Received command: " + command);
 				
 				String param1 = null, param2 = null, param3 = null;
 				
@@ -80,7 +80,6 @@ public class MasterClientThread extends Thread {
 				}
 				else if(command == Master.DELETE_DIR) {
 					FSReturnVals result = m.masterDeleteDir(param1, param2);
-					byte[] result_bytes = result.toString().getBytes();
 					Master.sendResultToClient(oos, result);
 				}
 				else if(command == Master.RENAME_DIR) {
@@ -106,7 +105,6 @@ public class MasterClientThread extends Thread {
 				else if(command == Master.OPEN_FILE) {
 					FileHandle ofh = new FileHandle();
 					FSReturnVals result = m.masterOpenFile(param1, ofh);
-					System.out.println("result: " + result);
 					Master.sendString(oos, ofh.getFileDir());
 					Master.sendString(oos, ofh.getFileName());
 					Master.sendResultToClient(oos, result);

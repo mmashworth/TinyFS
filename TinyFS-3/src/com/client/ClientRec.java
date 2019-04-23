@@ -24,7 +24,6 @@ public class ClientRec {
 	private int chunkServerPort;
 	
 	public ClientRec() {
-		System.out.println("in clientRec constructor");
 		//establish connection with a chunk server
 		if (s != null) return;
 		try {
@@ -144,7 +143,6 @@ public class ClientRec {
 			rec.setPayload(payload);
 			rec.setRID(recordID);
 			
-			System.out.println("\t" + "done with readfirstrecord");
 			
 			String result = Master.readString(ois);
 			return FSReturnVals.valueOf(result);
@@ -259,7 +257,6 @@ public class ClientRec {
 			
 			rec.setPayload(rc.getPayload());
 			rec.setRID(rc.getRID());
-			//System.out.println("\t" + "done with readnextrecord");
 			
 			String result = Master.readString(ois);
 			return FSReturnVals.valueOf(result);
@@ -296,10 +293,8 @@ public class ClientRec {
 			
 			rec.setPayload(rc.getPayload());
 			rec.setRID(rc.getRID());
-			System.out.println("\t" + "done with readprevrecord");
 			
 			String result = Master.readString(ois);
-			System.out.println(result);
 			return FSReturnVals.valueOf(result);
 		} catch(IOException ioe) {
 			ioe.printStackTrace(System.out);
