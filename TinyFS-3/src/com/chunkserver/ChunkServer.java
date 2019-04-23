@@ -499,20 +499,21 @@ public class ChunkServer implements ChunkServerInterface {
 		fileToChunks = new HashMap<String, List<String>>();
 		chunkToRecs = new HashMap<String, LinkedList<RID>>() ;
 
-		
-		if(fs.length == 0){
-			counter = 0;
-		}else{
-			long[] cntrs = new long[fs.length];
-			for (int j=0; j < cntrs.length; j++)
-				try {
-					cntrs[j] = Long.valueOf( fs[j].getName() ); 
-				} catch(NumberFormatException nfe) {
-					
-				}
-			
-			Arrays.sort(cntrs);
-			counter = cntrs[cntrs.length - 1];
+		if(fs != null) {
+			if(fs.length == 0){
+				counter = 0;
+			}else{
+				long[] cntrs = new long[fs.length];
+				for (int j=0; j < cntrs.length; j++)
+					try {
+						cntrs[j] = Long.valueOf( fs[j].getName() ); 
+					} catch(NumberFormatException nfe) {
+
+					}
+
+				Arrays.sort(cntrs);
+				counter = cntrs[cntrs.length - 1];
+			}
 		}
 	}
 	
