@@ -176,7 +176,8 @@ public class Master {
 					}
 					else if(command == OPEN_FILE) {
 						FileHandle fh = new FileHandle(param2, param3);
-						m.masterOpenFile(param1, fh);
+						FSReturnVals result = m.masterOpenFile(param1, fh);
+						sendResultToClient(result);
 					}
 					else if(command == CLOSE_FILE) {
 						FileHandle fh = new FileHandle(param2, param3);

@@ -14,9 +14,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class ClientFS {
-	
-	private Master m = new Master();
-	
+		
 	private static ObjectOutputStream oos;
 	private static ObjectInputStream ois;
 	private static Socket s;
@@ -260,11 +258,18 @@ public class ClientFS {
 	 * Example usage: OpenFile("/Shahram/CSCI485/Lecture1/Intro.pptx", FH1)
 	 */
 	public FSReturnVals OpenFile(String filepath, FileHandle ofh) {
-		//System.out.println("---OPENING FILE---");
-
-		FSReturnVals result =  m.masterOpenFile(filepath, ofh);
-		System.out.println("open file result: " + result);
-		return result;
+		try {
+			oos.writeInt(Master.DELETE_FILE);
+			Master.sendString(oos, filepath);
+			Master.sendString(oos, ofh.getFileDir());
+			Master.sendString(oos, ofh.getFileName());
+			oos.flush();
+			
+			String result = new String(Master.readString(ois));
+			return FSReturnVals.valueOf(result);
+		} catch(IOException ioe) {
+			return FSReturnVals.Fail;
+		}
 	}
 
 	/**
