@@ -665,6 +665,18 @@ public class ChunkServer implements ChunkServerInterface {
 						} catch(ClassNotFoundException cnfe) {}
 						break;
 						
+					case ReadPrevRecordCMD:
+						try {
+							FileHandle fh = (FileHandle) ReadInput.readObject();
+							RID pivot = (RID) ReadInput.readObject();
+							rec = (TinyRec) ReadInput.readObject();
+							result = chunkServerReadPrevRecord(fh, pivot, rec);
+							
+							WriteOutput.writeObject(rec);
+							Master.sendResultToClient(WriteOutput, result);
+						} catch(ClassNotFoundException cnfe) {}
+						
+						break;
 					case DeleteRecordCMD:
 						try {
 							FileHandle fh = (FileHandle) ReadInput.readObject();
@@ -673,6 +685,18 @@ public class ChunkServer implements ChunkServerInterface {
 
 							Master.sendResultToClient(WriteOutput, result);
 						} catch(ClassNotFoundException cnfe) {}
+						break;
+						
+					case ReadLastRecordCMD:
+						try {
+							FileHandle fh = (FileHandle) ReadInput.readObject();
+							rec = (TinyRec) ReadInput.readObject();
+							result = chunkServerReadLastRecord(fh, rec);
+
+							WriteOutput.writeObject(rec);
+							Master.sendResultToClient(WriteOutput, result);
+						} catch(ClassNotFoundException cnfe) {}
+						break;
 						
 					/*
 					public static final int AppendRecordCMD = 104;

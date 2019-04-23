@@ -17,7 +17,7 @@ import com.client.TinyRec;
  */
 public class UnitTest5 {
 	
-	public static int NumRecs = 100;
+	public static int NumRecs = 10;
 	static final String TestName = "Unit Test 5: ";
 	
 	public static void main(String[] args) {
@@ -70,6 +70,7 @@ public class UnitTest5 {
 				System.arraycopy(r2.getPayload(), 0, head, 0, 4);
 				int value = ((head[0] & 0xFF) << 24) | ((head[1] & 0xFF) << 16)
 				        | ((head[2] & 0xFF) << 8) | (head[3] & 0xFF);
+				System.out.println("\tvalue: " + value);
 				if(value % 2 == 0){
 					vect.add(r2.getRID());
 				}

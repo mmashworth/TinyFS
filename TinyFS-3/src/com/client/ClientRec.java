@@ -107,7 +107,6 @@ public class ClientRec {
 			oos.writeObject(RecordID);
 			oos.flush();
 			
-
 			String result = Master.readString(ois);
 			return FSReturnVals.valueOf(result);
 		} catch(IOException ioe) {
@@ -172,7 +171,7 @@ public class ClientRec {
 	public FSReturnVals ReadFirstRecord(FileHandle ofh, TinyRec rec, int chunkNum){
 		//System.out.println("----FETCHING FIRST RECORD----");
 		try {
-			oos.writeInt(ChunkServer.ReadFirstRecordCMD);
+			oos.writeInt(ChunkServer.ReadFirstRecordOfChunkCMD);
 			Master.sendString(oos, ofh.getFileDir());
 			Master.sendString(oos, ofh.getFileName());
 			oos.writeInt(chunkNum);
@@ -214,9 +213,28 @@ public class ClientRec {
 	 */
 	public FSReturnVals ReadLastRecord(FileHandle ofh, TinyRec rec){
 		System.out.println("----FETCHING LAST RECORD----");
-		FSReturnVals result = cs.chunkServerReadLastRecord(ofh, rec);
-		System.out.println("Read last record result: " + result);
-		return result;
+			
+		try {
+			oos.writeInt(ChunkServer.ReadLastRecordCMD);
+			oos.writeObject(ofh);
+			oos.writeObject(rec);
+			oos.flush();
+				
+			TinyRec rc = null;
+			try {
+				rc = (TinyRec) ois.readObject();
+			} catch(ClassNotFoundException cnfe) {}
+			
+			rec.setPayload(rc.getPayload());
+			rec.setRID(rc.getRID());
+			
+			String result = Master.readString(ois);
+			System.out.println("result: " + result);
+			return FSReturnVals.valueOf(result);
+		} catch(IOException ioe) {
+			System.out.println("clientrec readfirstrecord ioe: " + ioe.getMessage());
+			return FSReturnVals.Fail;
+		}
 	}
 
 	/**
@@ -267,9 +285,34 @@ public class ClientRec {
 	 */
 	public FSReturnVals ReadPrevRecord(FileHandle ofh, RID pivot, TinyRec rec){
 		System.out.println("----FETCHING PREV RECORD----");
-		FSReturnVals result = cs.chunkServerReadPrevRecord(ofh, pivot, rec);
-		System.out.println("result: " + result);
-		return result;
+		
+		
+		try {
+			oos.writeInt(ChunkServer.ReadPrevRecordCMD);
+			oos.writeObject(ofh);
+			oos.writeObject(pivot);
+			oos.writeObject(rec);
+			oos.flush();
+			
+			
+			TinyRec rc = null;
+			try {
+				rc = (TinyRec) ois.readObject();
+			} catch(ClassNotFoundException cnfe) {}
+			
+			rec.setPayload(rc.getPayload());
+			rec.setRID(rc.getRID());
+			System.out.println("\t" + "done with readprevrecord");
+			
+			String result = Master.readString(ois);
+			System.out.println(result);
+			return FSReturnVals.valueOf(result);
+		} catch(IOException ioe) {
+			ioe.printStackTrace(System.out);
+			return FSReturnVals.Fail;
+		}
+		
+
 	}
 
 }
