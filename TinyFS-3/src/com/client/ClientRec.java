@@ -1,13 +1,63 @@
 package com.client;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 
 import com.client.ClientFS.FSReturnVals;
+import com.master.Master;
 import com.chunkserver.ChunkServer;
 
 public class ClientRec {
 	
 	ChunkServer cs = new ChunkServer();
+	
+	private static ObjectOutputStream oos;
+	private static ObjectInputStream ois;
+	private static Socket s;
+	
+	private int chunkServerPort;
+	
+	public ClientRec() {
+		System.out.println("in clientRec constructor");
+		//establish connection with a chunk server
+		if (s != null) return;
+		try {
+			FileReader fr = new FileReader(new File("TinyFS-3/ClientConfig.txt/"));
+			
+			
+			BufferedReader bufferedReader = new BufferedReader(fr);
+			String line;
+			String lastEntry = "";
+			while ((line = bufferedReader.readLine()) != null) {
+				lastEntry = line;
+			}
+			fr.close();
+			chunkServerPort = Integer.parseInt(lastEntry.substring(lastEntry.indexOf(':')+2));
+
+			
+			System.out.println("---->0"+chunkServerPort);
+			s = new Socket("127.0.0.1", chunkServerPort);
+			System.out.println("---->1");
+
+			oos = new ObjectOutputStream(s.getOutputStream());
+			System.out.println("---->2");
+
+			oos.flush();
+			System.out.println("----3");
+
+			ois = new ObjectInputStream(s.getInputStream());
+			System.out.println("---->4");
+
+		} catch(IOException ioe) {
+			System.out.println("ioe in Client constructor: " + ioe.getMessage());
+		}
+	}
 
 	/**
 	 * Appends a record to the open file as specified by ofh 
@@ -20,10 +70,33 @@ public class ClientRec {
 	 * Example usage: AppendRecord(FH1, obama, RecID1)
 	 */
 	public FSReturnVals AppendRecord(FileHandle ofh, byte[] payload, RID RecordID) {
-		//System.out.println("----APPENDING RECORD----");
-		FSReturnVals result = cs.chunkServerAppendRecord(ofh, payload, RecordID);
+		
+		System.out.println("----APPENDING RECORD----");
+		try {
+			oos.writeInt(ChunkServer.AppendRecordCMD);
+			Master.sendString(oos, ofh.getFileDir());
+			Master.sendString(oos, ofh.getFileName());
+			oos.writeInt(payload.length);
+			oos.write(payload);
+			oos.flush();
+			
+			String filepath = Master.readString(ois);
+			String chunk = Master.readString(ois);
+			int offset = Master.getPayloadInt(ois);
+			int length = Master.getPayloadInt(ois);
+			
+			System.out.println("\t" + offset + chunk);
+			
+			String result = Master.readString(ois);
+			return FSReturnVals.valueOf(result);
+		} catch(IOException ioe) {
+			System.out.println("clientrec appendrecord ioe: " + ioe.getMessage());
+			return FSReturnVals.Fail;
+		}
+		
+		//FSReturnVals result = cs.chunkServerAppendRecord(ofh, payload, RecordID);
 		//System.out.println("append result: " + result);
-		return result;
+		//return result;
 	}
 
 	/**
@@ -52,9 +125,41 @@ public class ClientRec {
 	 * Example usage: ReadFirstRecord(FH1, tinyRec)
 	 */
 	public FSReturnVals ReadFirstRecord(FileHandle ofh, TinyRec rec){
-		//System.out.println("----FETCHING FIRST RECORD----");
-		FSReturnVals result = cs.chunkServerReadFirstRecord(ofh, rec, 1);
-		return result;
+		System.out.println("----FETCHING FIRST RECORD----");
+		
+		
+		try {
+			oos.writeInt(ChunkServer.ReadFirstRecordCMD);
+			Master.sendString(oos, ofh.getFileDir());
+			Master.sendString(oos, ofh.getFileName());
+			oos.flush();
+			
+			
+			int payloadLength = Master.getPayloadInt(ois);
+			byte[] payload = Client.RecvPayload("client", ois, payloadLength);
+			
+			
+			String filepath = Master.readString(ois);
+			String chunk = Master.readString(ois);
+			int offset = Master.getPayloadInt(ois);
+			int length = Master.getPayloadInt(ois);
+			RID recordID = new RID(filepath, chunk, offset, length);
+			
+			rec.setPayload(payload);
+			rec.setRID(recordID);
+			
+			System.out.println("\t" + "done with readfirstrecord");
+			
+			String result = Master.readString(ois);
+			return FSReturnVals.valueOf(result);
+		} catch(IOException ioe) {
+			System.out.println("clientrec readfirstrecord ioe: " + ioe.getMessage());
+			return FSReturnVals.Fail;
+		}
+		
+		
+		//FSReturnVals result = cs.chunkServerReadFirstRecord(ofh, rec, 1);
+		//return result;
 	}
 	
 	/**

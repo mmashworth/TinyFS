@@ -133,14 +133,14 @@ public class Master {
 					
 					String param1 = null, param2 = null, param3 = null;
 					
-					if(command == 4) {
+					if(command == 4 || command == 7) {
 						param1 = m.readString(ois);
 					}
 					else if(command >= 1 && command <= 6) {
 						param1 = m.readString(ois);
 						param2 = m.readString(ois);
 					}
-					else if(command == 7 || command == 8) {
+					else if(command == 8) {
 						param1 = m.readString(ois);
 						param2 = m.readString(ois);
 						param3 = m.readString(ois);
@@ -148,16 +148,16 @@ public class Master {
 					
 					if(command == CREATE_DIR) {
 						FSReturnVals result = m.masterCreateDir(param1, param2);
-						sendResultToClient(result);
+						sendResultToClient(oos, result);
 					}
 					else if(command == DELETE_DIR) {
 						FSReturnVals result = m.masterDeleteDir(param1, param2);
 						byte[] result_bytes = result.toString().getBytes();
-						sendResultToClient(result);
+						sendResultToClient(oos, result);
 					}
 					else if(command == RENAME_DIR) {
 						FSReturnVals result = m.masterRenameDir(param1, param2);
-						sendResultToClient(result);
+						sendResultToClient(oos, result);
 					}
 					else if(command == LIST_DIR) {
 						String[] results = m.masterListDir(param1);
@@ -169,16 +169,19 @@ public class Master {
 					}
 					else if(command == CREATE_FILE) {
 						FSReturnVals result = m.masterCreateFile(param1, param2);
-						sendResultToClient(result);
+						sendResultToClient(oos, result);
 					}
 					else if(command == DELETE_FILE) {
 						FSReturnVals result = m.masterDeleteFile(param1, param2);
-						sendResultToClient(result);
+						sendResultToClient(oos, result);
 					}
 					else if(command == OPEN_FILE) {
-						FileHandle fh = new FileHandle(param2, param3);
-						FSReturnVals result = m.masterOpenFile(param1, fh);
-						sendResultToClient(result);
+						FileHandle ofh = new FileHandle();
+						FSReturnVals result = m.masterOpenFile(param1, ofh);
+						System.out.println("result: " + result);
+						sendString(oos, ofh.getFileDir());
+						sendString(oos, ofh.getFileName());
+						sendResultToClient(oos, result);
 					}
 					else if(command == CLOSE_FILE) {
 						FileHandle fh = new FileHandle(param2, param3);
@@ -448,7 +451,7 @@ public class Master {
 	 * methods for getting ints/strings from streams
 	 */
 	
-	public static void sendResultToClient(FSReturnVals result) {
+	public static void sendResultToClient(ObjectOutputStream oos, FSReturnVals result) {
 		byte[] result_bytes = result.toString().getBytes();
 		try {
 			oos.writeInt(result_bytes.length);

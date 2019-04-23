@@ -40,12 +40,14 @@ public class UnitTest4 {
 		//get the file handle first
 		FileHandle fh = new FileHandle();
 		FSReturnVals ofd = cfs.OpenFile("/" + dir1 + "/emp", fh);
+		System.out.println("here2");
+
 		//assemble the file handle in cfs.OpenFile
 		byte[] payload = null;
 		int intSize = Integer.SIZE / Byte.SIZE;	// 4 bytes
 		ClientRec crec = new ClientRec();
 		
-		
+		System.out.println("here");
 		
 		System.out.println(TestName + "Construct a record with the first four bytes equal to i, followed with 5 char attributes each with length 20.");
 		for (int i = 0; i < NumRecs; i++){
