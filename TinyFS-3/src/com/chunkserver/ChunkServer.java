@@ -226,7 +226,15 @@ public class ChunkServer implements ChunkServerInterface {
 				//input: chunkHandle, offset of new free record & length of it
 		
 		System.out.println("old size: " + chunkToRecs.get(chunkHandle).size());
-		chunkToRecs.get(chunkHandle).remove(recordID);
+		LinkedList<RID> records = chunkToRecs.get(chunkHandle);
+		for(RID recs : records) {
+			if(recs.getOffset() == recordID.getOffset()) {
+				System.out.println("FOUND RECORD");
+				chunkToRecs.get(chunkHandle).remove(recs);
+				break;
+			}
+				
+		}
 		System.out.println("new size: " + chunkToRecs.get(chunkHandle).size());
 
 		freeRecord(filepath, chunkNum, recordID);
