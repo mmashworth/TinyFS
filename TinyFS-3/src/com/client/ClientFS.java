@@ -273,7 +273,7 @@ public class ClientFS {
 	 */
 	public FSReturnVals OpenFile(String filepath, FileHandle ofh) {
 		try {
-			oos.writeInt(Master.DELETE_FILE);
+			oos.writeInt(Master.OPEN_FILE);
 			Master.sendString(oos, filepath);
 			Master.sendString(oos, ofh.getFileDir());
 			Master.sendString(oos, ofh.getFileName());
