@@ -38,7 +38,7 @@ import com.client.TinyRec;
  */
 
 public class ChunkServer implements ChunkServerInterface {
-	final static String rootFilePath = "/csci485/";	//or C:\\newfile.txt
+	final static String rootFilePath = "csci485/";	//or C:\\newfile.txt
 	public final static String ClientConfigFile = "ClientConfig.txt";
 	
 	//Used for the file system
@@ -629,8 +629,8 @@ public class ChunkServer implements ChunkServerInterface {
 				System.out.println("Chunkserver got connection");
 				
 				//Use the existing input and output stream as long as the client is connected
-				while (!ClientConnection.isClosed()) {
-					int CMD = Master.getPayloadInt(ReadInput);
+				int CMD;
+				while((CMD = Master.getPayloadInt(ReadInput)) != -1) {
 					if(CMD != -1) System.out.println("Received command: " + CMD);
 					switch (CMD){
 					case AppendRecordCMD:

@@ -64,7 +64,7 @@ public class UnitTest6 {
 			
 			byte[] indexBytes = ByteBuffer.allocate(intSize).putInt(i).array();
 			long size = 0;
-			byte[] contentBytes = getBytesFromFile(new File("TinyFS-3/SuperHeros/" + filename + ".jpg"), size);
+			byte[] contentBytes = getBytesFromFile(new File("SuperHeros/" + filename + ".jpg"), size);
 			byte[] sizeBytes = ByteBuffer.allocate(intSize).putInt((int)size).array();
 			byte[] IMG_rec = new byte[indexBytes.length + sizeBytes.length + contentBytes.length];
 			
@@ -139,7 +139,7 @@ public class UnitTest6 {
 			long size = 0;
 			
 			//actualy bytes from the original image
-			byte[] contentBytes = getBytesFromFile(new File("TinyFS-3/SuperHeros/" + filename + ".jpg"), size);
+			byte[] contentBytes = getBytesFromFile(new File("SuperHeros/" + filename + ".jpg"), size);
 			byte[] sizeBytes = ByteBuffer.allocate(intSize).putInt((int)size).array();
 			imagePL = img1.getPayload(); //what was stored in the file system
 			System.out.println("-----------> " + imagePL.length);

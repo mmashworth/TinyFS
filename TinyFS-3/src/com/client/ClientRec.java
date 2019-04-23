@@ -28,7 +28,7 @@ public class ClientRec {
 		//establish connection with a chunk server
 		if (s != null) return;
 		try {
-			FileReader fr = new FileReader(new File("TinyFS-3/ClientConfig.txt/"));
+			FileReader fr = new FileReader(new File("ClientConfig.txt"));
 			
 			
 			BufferedReader bufferedReader = new BufferedReader(fr);
@@ -66,6 +66,8 @@ public class ClientRec {
 		System.out.println("----APPENDING RECORD----");
 		try {
 			oos.writeInt(ChunkServer.AppendRecordCMD);
+			System.out.println(ofh.getFileDir());
+			System.out.println(ofh.getFileName());
 			Master.sendString(oos, ofh.getFileDir());
 			Master.sendString(oos, ofh.getFileName());
 			oos.writeInt(payload.length);

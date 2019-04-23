@@ -60,7 +60,7 @@ public class Master {
 	public static final String logPath = root + "/logs/";
 	public static final String logMeta = "logmeta.txt";
 	public static final String namespacePath = root + "/namespace.txt";
-	public static String configFilePath = "MasterConfig.txt/";
+	public static String configFilePath = "MasterConfig.txt";
 	
 	private static ObjectOutputStream oos;
 	private static ObjectInputStream ois;
@@ -85,6 +85,13 @@ public class Master {
 	
 	
 	private Map<String, String> fileToChunkMap;
+	
+	public void cleanMaster() {
+		namespace = new HashMap<>();
+		namespace.put("/", new ArrayList<String>());
+		clientThreads = new Vector<>();
+		dirToFiles = new HashMap<>();	
+	}
 
 	public Master() {
 		namespace = new LinkedHashMap<>();
@@ -162,14 +169,14 @@ public class Master {
 					
 					String param1 = null, param2 = null, param3 = null;
 					
-					if(command == 4) {
+					if(command == 4 || command == 7) {
 						param1 = pieces[1];
 					}
 					else if(command >= 1 && command <= 6) {
 						param1 = pieces[1];
 						param2 = pieces[2];
 					}
-					else if(command == 7 || command == 8) {
+					else if(command == 8) {
 						param1 = pieces[1];
 						param2 = pieces[2];
 						param3 = pieces[3];
@@ -556,7 +563,7 @@ public class Master {
 		return s + "/";
 	}
 	
-	public static void logTransaction(int command, ArrayList<String> params) {
+	public void logTransaction(int command, ArrayList<String> params) {
 		try {
 			if (numTransactions >= 10) {
 				numTransactions = 0;
