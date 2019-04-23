@@ -74,7 +74,7 @@ public class ChunkServer implements ChunkServerInterface {
 	Map<String, LinkedList<RID>> chunkToRecs;
 	
 	public static final int FileHeaderLength = 4;
-	public static final int CHUNK_SIZE = 4096;
+	public static final int CHUNK_SIZE = 4096*256;
 	
 	
 	/*
@@ -661,6 +661,16 @@ public class ChunkServer implements ChunkServerInterface {
 							result = chunkServerReadNextRecord(fh, pivot, rec);
 							
 							WriteOutput.writeObject(rec);
+							Master.sendResultToClient(WriteOutput, result);
+						} catch(ClassNotFoundException cnfe) {}
+						break;
+						
+					case DeleteRecordCMD:
+						try {
+							FileHandle fh = (FileHandle) ReadInput.readObject();
+							RID rid = (RID) ReadInput.readObject();
+							result = chunkServerDeleteRecord(fh, rid);
+
 							Master.sendResultToClient(WriteOutput, result);
 						} catch(ClassNotFoundException cnfe) {}
 						

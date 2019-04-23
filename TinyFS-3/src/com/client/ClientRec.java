@@ -99,9 +99,22 @@ public class ClientRec {
 	 */
 	public FSReturnVals DeleteRecord(FileHandle ofh, RID RecordID) {
 		System.out.println("----DELETING RECORD----");
-		FSReturnVals result = cs.chunkServerDeleteRecord(ofh, RecordID);
-		System.out.println("delete record result: " + result);
-		return result;
+		
+		
+		try {
+			oos.writeInt(ChunkServer.DeleteRecordCMD);
+			oos.writeObject(ofh);
+			oos.writeObject(RecordID);
+			oos.flush();
+			
+
+			String result = Master.readString(ois);
+			return FSReturnVals.valueOf(result);
+		} catch(IOException ioe) {
+			ioe.printStackTrace(System.out);
+			return FSReturnVals.Fail;
+		}
+		
 	}
 
 	/**
@@ -219,8 +232,6 @@ public class ClientRec {
 	public FSReturnVals ReadNextRecord(FileHandle ofh, RID pivot, TinyRec rec){
 		System.out.println("----FETCHING NEXT RECORD----");
 		
-		
-		
 		try {
 			oos.writeInt(ChunkServer.ReadNextRecordCMD);
 			oos.writeObject(ofh);
@@ -228,9 +239,6 @@ public class ClientRec {
 			oos.writeObject(rec);
 			oos.flush();
 			
-			
-			int payloadLength = Master.getPayloadInt(ois);
-			byte[] payload = Client.RecvPayload("client", ois, payloadLength);
 			
 			TinyRec rc = null;
 			try {
