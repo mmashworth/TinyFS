@@ -88,7 +88,7 @@ public class Master {
 
 	public Master() {
 		namespace = new LinkedHashMap<>();
-		// namespace.put("/", new ArrayList<String>());
+		namespace.put("/", new ArrayList<String>());
 		dirToFiles = new HashMap<>();
 		clientThreads = new Vector<>();
 		port = 0;
