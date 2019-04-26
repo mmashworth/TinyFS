@@ -28,7 +28,7 @@ public class ClientRec {
 		//establish connection with a chunk server
 		if (s != null) return;
 		try {
-			FileReader fr = new FileReader(new File("ClientConfig.txt"));
+			FileReader fr = new FileReader(new File("TinyFS-3/ClientConfig.txt/"));
 			
 			
 			BufferedReader bufferedReader = new BufferedReader(fr);

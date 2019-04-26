@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.TreeMap;
 
 import com.client.ClientFS.FSReturnVals;
@@ -56,11 +57,12 @@ public class Master {
 	public static final int OPEN_FILE = 7;
 	public static final int CLOSE_FILE = 8;
 	
-	public static final String root = "csci485";
+	public static final String root = "TinyFS-3/csci485";
 	public static final String logPath = root + "/logs/";
 	public static final String logMeta = "logmeta.txt";
 	public static final String namespacePath = root + "/namespace.txt";
-	public static String configFilePath = "MasterConfig.txt";
+	public static final String dirFilePath = root + "/dirFile.txt";
+	public static final String configFilePath = "TinyFS-3/MasterConfig.txt/";
 	
 	private static ObjectOutputStream oos;
 	private static ObjectInputStream ois;
@@ -79,15 +81,15 @@ public class Master {
 	//maps from a filepath to the contents of that directory
 	private static Map<String, List<String> > namespace;
 	//mapping from a directory to its files
-	private Map<String, List<FileHandle> > dirToFiles;
+	private static Map<String, List<FileHandle> > dirToFiles;
 	//TODO: need a mapping from file handles to chunk handles
 	
 	
 	
-	private Map<String, String> fileToChunkMap;
+	// private Map<String, String> fileToChunkMap;
 	
 	public void cleanMaster() {
-		namespace = new HashMap<>();
+		namespace = new LinkedHashMap<>();
 		namespace.put("/", new ArrayList<String>());
 		clientThreads = new Vector<>();
 		dirToFiles = new HashMap<>();	
@@ -156,6 +158,23 @@ public class Master {
 				scan.close();
 			}
 			
+			// Initialize files
+			File dirFile = new File(dirFilePath);
+			if (dirFile.exists()) {
+				Scanner scan = new Scanner(dirFile);
+				while(scan.hasNextLine()) {
+					String line = scan.nextLine();
+					List<String> keyValues = Arrays.asList(line.split("\\s+"));
+					ArrayList<FileHandle> fhs = new ArrayList<FileHandle>();
+					for (int i = 0; i < keyValues.size() - 1; i++) {
+						FileHandle fh = new FileHandle(keyValues.get(0), keyValues.subList(1, keyValues.size()).get(i));
+						fhs.add(fh);
+					}
+					dirToFiles.put(keyValues.get(0), fhs);
+				}
+				scan.close();
+			}
+			
 			// Redo log transactions
 			File logFile = new File(logPath + Integer.toString(numLogs));
 			if (logFile.exists()) {
@@ -201,7 +220,7 @@ public class Master {
 						m.masterDeleteFile(param1, param2);
 					}
 					else if(command == OPEN_FILE) {
-						FileHandle fh = new FileHandle(param2, param3);
+						FileHandle fh = new FileHandle();
 						m.masterOpenFile(param1, fh);
 					}
 					else if(command == CLOSE_FILE) {
@@ -241,83 +260,6 @@ public class Master {
 				} else if (connec_type == SERVER_CONNEC) {
 					//TODO
 				}
-				
-				//continue reading requests until it is closed
-				/*while(!s.isClosed()) {					
-					//read in command identifier and switch based on that
-					int command = getPayloadInt(ois);
-					if (command != -1) System.out.println("Received command: " + command);
-					
-					String param1 = null, param2 = null, param3 = null;
-					
-					if(command == 4) {
-						param1 = Master.readString(ois);
-					}
-					else if(command >= 1 && command <= 6) {
-						param1 = Master.readString(ois);
-						param2 = Master.readString(ois);
-					}
-					else if(command == 7 || command == 8) {
-						param1 = Master.readString(ois);
-						param2 = Master.readString(ois);
-						param3 = Master.readString(ois);
-					}
-					
-					if(command == CREATE_DIR) {
-						FSReturnVals result = m.masterCreateDir(param1, param2);
-						sendResultToClient(result);
-					}
-					else if(command == DELETE_DIR) {
-						FSReturnVals result = m.masterDeleteDir(param1, param2);
-						byte[] result_bytes = result.toString().getBytes();
-						sendResultToClient(result);
-					}
-					else if(command == RENAME_DIR) {
-						FSReturnVals result = m.masterRenameDir(param1, param2);
-						sendResultToClient(result);
-					}
-					else if(command == LIST_DIR) {
-						String[] results = m.masterListDir(param1);
-						oos.writeInt(results.length);
-						for(String s : results) {
-							sendString(oos, s);
-						}
-						oos.flush();
-					}
-					else if(command == CREATE_FILE) {
-						FSReturnVals result = m.masterCreateFile(param1, param2);
-						sendResultToClient(result);
-					}
-					else if(command == DELETE_FILE) {
-						FSReturnVals result = m.masterDeleteFile(param1, param2);
-						sendResultToClient(result);
-					}
-					else if(command == OPEN_FILE) {
-						FileHandle fh = new FileHandle(param2, param3);
-						FSReturnVals result = m.masterOpenFile(param1, fh);
-						sendResultToClient(result);
-					}
-					else if(command == CLOSE_FILE) {
-						FileHandle fh = new FileHandle(param2, param3);
-						m.masterOpenFile(param1, fh);
-						m.masterCloseFile(param1, fh);
-					}
-					else {
-						// System.out.println("Could not parse command");
-					}
-					
-					if ((command > 0 && command < 9) && command != 4) {
-						ArrayList<String> params = new ArrayList<String>();
-						params.add(param1);
-						if (param2 != null) {
-							params.add(param2);
-						}
-						if (param3 != null) {
-							params.add(param3);
-						}
-						logTransaction(command, params);
-					}
-				}*/
 			} catch(IOException ioe) {
 				System.out.println(ioe.getMessage());
 			}
@@ -586,6 +528,21 @@ public class Master {
 					bw.newLine();
 				}
 				bw.close();
+				
+				File dirFile = new File(dirFilePath);
+				BufferedWriter writer = new BufferedWriter(new FileWriter(dirFile, false));
+				
+				for (Map.Entry<String, List<FileHandle>> entry : dirToFiles.entrySet()) {
+					String key = entry.getKey();
+					List<FileHandle> values = entry.getValue();
+					writer.write(key + " ");
+					for (FileHandle fh: values) {
+						String fileName = fh.getFileName();
+						writer.write(fileName + " ");
+					}
+					writer.newLine();
+				}
+				writer.close();
 				
 				/*for (String key : namespace.keySet()) {
 					bw.write(key + " ");

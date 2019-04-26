@@ -38,8 +38,8 @@ import com.client.TinyRec;
  */
 
 public class ChunkServer implements ChunkServerInterface {
-	final static String rootFilePath = "csci485/";	//or C:\\newfile.txt
-	public final static String ClientConfigFile = "ClientConfig.txt";
+	final static String rootFilePath = "TinyFS-3/csci485/";	//or C:\\newfile.txt
+	public final static String ClientConfigFile = "TinyFS-3/ClientConfig.txt";
 	
 	//Used for the file system
 	public static long counter;
