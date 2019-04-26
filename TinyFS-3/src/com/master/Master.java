@@ -1,9 +1,11 @@
 package com.master;
 
 import java.util.Map;
-
+import java.util.Scanner;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,9 +18,11 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.TreeMap;
 
 import com.client.ClientFS.FSReturnVals;
@@ -44,7 +48,6 @@ Fail               // Returned when a method fails
 
 public class Master {
 	
-	
 	public static final int CREATE_DIR = 1;
 	public static final int DELETE_DIR = 2;
 	public static final int RENAME_DIR = 3;
@@ -54,43 +57,49 @@ public class Master {
 	public static final int OPEN_FILE = 7;
 	public static final int CLOSE_FILE = 8;
 	
+	public static final String root = "TinyFS-3/csci485";
+	public static final String logPath = root + "/logs/";
+	public static final String logMeta = "logmeta.txt";
+	public static final String namespacePath = root + "/namespace.txt";
+	public static final String dirFilePath = root + "/dirFile.txt";
+	public static final String configFilePath = "TinyFS-3/MasterConfig.txt/";
+	
 	private static ObjectOutputStream oos;
 	private static ObjectInputStream ois;
 	private static ServerSocket ss;
 	private static Socket s;
 	private static int port;
 	private static String ip;
+	public static int numLogs = 0;
+	public static int numTransactions = 0;
 	
 	public static final int SERVER_CONNEC = 1; //connection is from a chunk server
 	public static final int CLIENT_CONNEC = 2; //connection is from a chunk client
-	
-	
-	public static String configFilePath = "TinyFS-3/MasterConfig.txt/";
+
 	private Vector<MasterClientThread> clientThreads;
 	
 	//maps from a filepath to the contents of that directory
-	private Map<String, List<String> > namespace;
+	private static Map<String, List<String> > namespace;
 	//mapping from a directory to its files
-	private Map<String, List<FileHandle> > dirToFiles;
+	private static Map<String, List<FileHandle> > dirToFiles;
 	//TODO: need a mapping from file handles to chunk handles
 	
 	
 	
-	private Map<String, String> fileToChunkMap;
+	// private Map<String, String> fileToChunkMap;
 	
 	public void cleanMaster() {
-		namespace = new HashMap<>();
+		namespace = new LinkedHashMap<>();
 		namespace.put("/", new ArrayList<String>());
 		clientThreads = new Vector<>();
 		dirToFiles = new HashMap<>();	
 	}
 
 	public Master() {
-		namespace = new HashMap<>();
+		namespace = new LinkedHashMap<>();
 		namespace.put("/", new ArrayList<String>());
-		clientThreads = new Vector<>();
 		dirToFiles = new HashMap<>();
-		
+		clientThreads = new Vector<>();
 		port = 0;
 	}
 	
@@ -104,7 +113,6 @@ public class Master {
 		try {
 			ss = new ServerSocket(port);
 			port = ss.getLocalPort(); //get port the server bound to
-			//TODO write port to config file
 			
 			System.out.println("Master bound to port: " + port);
 			
@@ -119,6 +127,111 @@ public class Master {
 			PrintWriter pw = new PrintWriter(fw);
 			pw.println("port : " + Integer.toString(port));
 			pw.close();
+			
+			// Initialize log file
+			File logMetaFile = new File(logPath + logMeta);
+			if (logMetaFile.exists()) {
+				Scanner scan = new Scanner(logMetaFile);
+				if (scan.hasNext()) {
+					numLogs = scan.nextInt();
+				}
+				scan.close();
+			} else {
+				FileWriter writer = new FileWriter(logMetaFile, false);
+				writer.write(((Integer)numLogs).toString());
+				writer.close();
+			}
+			
+			// Initialize namespace
+			File namespaceFile = new File(namespacePath);
+			if (namespaceFile.exists()) {
+				Scanner scan = new Scanner(namespaceFile);
+				while(scan.hasNextLine()) {
+					String line = scan.nextLine();
+					List<String> keyValues = Arrays.asList(line.split("\\s+"));
+					namespace.put(keyValues.get(0), new ArrayList<String>());
+					namespace.put(keyValues.get(0), keyValues.subList(1, keyValues.size()));
+					for (int i = 1; i < keyValues.size(); i++) {
+						namespace.put(keyValues.get(0) + keyValues.get(i), new ArrayList<String>());
+					}
+				}
+				scan.close();
+			}
+			
+			// Initialize files
+			File dirFile = new File(dirFilePath);
+			if (dirFile.exists()) {
+				Scanner scan = new Scanner(dirFile);
+				while(scan.hasNextLine()) {
+					String line = scan.nextLine();
+					List<String> keyValues = Arrays.asList(line.split("\\s+"));
+					ArrayList<FileHandle> fhs = new ArrayList<FileHandle>();
+					for (int i = 0; i < keyValues.size() - 1; i++) {
+						FileHandle fh = new FileHandle(keyValues.get(0), keyValues.subList(1, keyValues.size()).get(i));
+						fhs.add(fh);
+					}
+					dirToFiles.put(keyValues.get(0), fhs);
+				}
+				scan.close();
+			}
+			
+			// Redo log transactions
+			File logFile = new File(logPath + Integer.toString(numLogs));
+			if (logFile.exists()) {
+				Scanner scan = new Scanner(logFile);
+				String throwaway = scan.nextLine();
+				while(scan.hasNextLine()) {
+					String line = scan.nextLine();
+					String[] pieces = line.split(" ");
+					int command = Integer.parseInt(pieces[0]);
+					if (command != -1) System.out.println("Redo command: " + command);
+					
+					String param1 = null, param2 = null, param3 = null;
+					
+					if(command == 4 || command == 7) {
+						param1 = pieces[1];
+					}
+					else if(command >= 1 && command <= 6) {
+						param1 = pieces[1];
+						param2 = pieces[2];
+					}
+					else if(command == 8) {
+						param1 = pieces[1];
+						param2 = pieces[2];
+						param3 = pieces[3];
+					}
+					
+					if(command == CREATE_DIR) {
+						m.masterCreateDir(param1, param2);
+					}
+					else if(command == DELETE_DIR) {
+						m.masterDeleteDir(param1, param2);
+					}
+					else if(command == RENAME_DIR) {
+						m.masterRenameDir(param1, param2);
+					}
+					else if(command == LIST_DIR) {
+						m.masterListDir(param1);
+					}
+					else if(command == CREATE_FILE) {
+						m.masterCreateFile(param1, param2);
+					}
+					else if(command == DELETE_FILE) {
+						m.masterDeleteFile(param1, param2);
+					}
+					else if(command == OPEN_FILE) {
+						FileHandle fh = new FileHandle();
+						m.masterOpenFile(param1, fh);
+					}
+					else if(command == CLOSE_FILE) {
+						FileHandle fh = new FileHandle(param2, param3);
+						m.masterOpenFile(param1, fh);
+						m.masterCloseFile(param1, fh);
+					}
+				}
+			}
+			
+			
 		} catch(IOException ioe) {
 			System.out.println("ioe in startChunkServer binding to port: " + ioe.getMessage());
 			return;
@@ -137,14 +250,14 @@ public class Master {
 				ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
 				ObjectInputStream ois = new ObjectInputStream(s.getInputStream());
 				
-				//get whether connection is from a client or a server
+				// get whether connection is from a client or a server
 				int connec_type = getPayloadInt(ois);
 				
-				if( connec_type == CLIENT_CONNEC) {
-					System.out.println("Recieved a new client connection.");
-					MasterClientThread client = new MasterClientThread( s, m, oos, ois);
+				if (connec_type == CLIENT_CONNEC) {
+					System.out.println("Received a new client connection.");
+					MasterClientThread client = new MasterClientThread(s, m, oos, ois);
 					m.clientThreads.add(client);
-				} else if ( connec_type == SERVER_CONNEC) {
+				} else if (connec_type == SERVER_CONNEC) {
 					//TODO
 				}
 			} catch(IOException ioe) {
@@ -167,8 +280,10 @@ public class Master {
 		if(srcContents.contains(dirName)) return FSReturnVals.Success;
 		
 		//else add dirName to src and the new dir to the namespace
-		//System.out.println("Added " + src + dirName + " to the namespace");
-		namespace.get(src).add(dirName);
+		System.out.println("Added " + src + dirName + " to the namespace");
+		ArrayList<String> tempList = new ArrayList<String>(namespace.get(src));
+		tempList.add(dirName);
+		namespace.put(src, tempList);
 		namespace.put(src + dirName, new ArrayList<String>());
 		
 		return FSReturnVals.Success;
@@ -390,14 +505,72 @@ public class Master {
 		return s + "/";
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
+	public void logTransaction(int command, ArrayList<String> params) {
+		try {
+			if (numTransactions >= 10) {
+				numTransactions = 0;
+				numLogs++;
+				File logMetaFile = new File(logPath + "logMeta.txt");
+				FileWriter fw = new FileWriter(logMetaFile, false);
+				fw.write(((Integer)numLogs).toString());
+				fw.close();
+				
+				File namespaceFile = new File(namespacePath);
+				BufferedWriter bw = new BufferedWriter(new FileWriter(namespaceFile, false));
+				
+				for (Map.Entry<String, List<String>> entry : namespace.entrySet()) {
+					String key = entry.getKey();
+					List<String> values = entry.getValue();
+					bw.write(key + " ");
+					for (String value : values) {
+						bw.write(value + " ");
+					}
+					bw.newLine();
+				}
+				bw.close();
+				
+				File dirFile = new File(dirFilePath);
+				BufferedWriter writer = new BufferedWriter(new FileWriter(dirFile, false));
+				
+				for (Map.Entry<String, List<FileHandle>> entry : dirToFiles.entrySet()) {
+					String key = entry.getKey();
+					List<FileHandle> values = entry.getValue();
+					writer.write(key + " ");
+					for (FileHandle fh: values) {
+						String fileName = fh.getFileName();
+						writer.write(fileName + " ");
+					}
+					writer.newLine();
+				}
+				writer.close();
+				
+				/*for (String key : namespace.keySet()) {
+					bw.write(key + " ");
+					// System.out.print(key + " ");
+					List<String> values = namespace.get(key);
+					for (String value : values) {
+						bw.write(value + " ");
+						// System.out.print(value + " ");
+					}
+					bw.newLine();
+				}
+				bw.close();*/
+			}
+			
+			File logFile = new File(logPath + Integer.toString(numLogs));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(logFile, true));
+			String transaction = Integer.toString(command) + " ";
+			for (String param: params) {
+				transaction += param + " ";
+			}
+			bw.write(transaction);
+			bw.newLine();
+			bw.close();
+			numTransactions++;
+		} catch (IOException ioe) {
+			System.out.println("ioe in logTransaction: " + ioe.getMessage());
+		}
+	}
 	
 	/*
 	 * methods for getting ints/strings from streams
@@ -484,30 +657,3 @@ public class Master {
 	}
 	
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

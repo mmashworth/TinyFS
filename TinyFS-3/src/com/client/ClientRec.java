@@ -65,6 +65,8 @@ public class ClientRec {
 		//System.out.println("----APPENDING RECORD----");
 		try {
 			oos.writeInt(ChunkServer.AppendRecordCMD);
+			System.out.println(ofh.getFileDir());
+			System.out.println(ofh.getFileName());
 			Master.sendString(oos, ofh.getFileDir());
 			Master.sendString(oos, ofh.getFileName());
 			oos.writeInt(payload.length);

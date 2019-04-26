@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 
 import com.master.Master;
 import com.client.FileHandle;
@@ -57,7 +58,7 @@ public class MasterClientThread extends Thread {
 			while((command = Master.getPayloadInt(ois)) != -1) {
 	
 				//read in command identifier and switch based on that
-				//System.out.println("Received command: " + command);
+				System.out.println("Received command: " + command);
 				
 				String param1 = null, param2 = null, param3 = null;
 				
@@ -105,6 +106,7 @@ public class MasterClientThread extends Thread {
 				else if(command == Master.OPEN_FILE) {
 					FileHandle ofh = new FileHandle();
 					FSReturnVals result = m.masterOpenFile(param1, ofh);
+					System.out.println("result: " + result);
 					Master.sendString(oos, ofh.getFileDir());
 					Master.sendString(oos, ofh.getFileName());
 					Master.sendResultToClient(oos, result);
@@ -116,6 +118,18 @@ public class MasterClientThread extends Thread {
 				}
 				else {
 					//System.out.println("Could not parse command");
+				}
+				
+				if ((command > 0 && command < 9) && command != 4) {
+					ArrayList<String> params = new ArrayList<String>();
+					params.add(param1);
+					if (param2 != null) {
+						params.add(param2);
+					}
+					if (param3 != null) {
+						params.add(param3);
+					}
+					m.logTransaction(command, params);
 				}
 			}
 		} catch (IOException e) {

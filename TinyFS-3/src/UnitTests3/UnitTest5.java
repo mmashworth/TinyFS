@@ -17,7 +17,7 @@ import com.client.TinyRec;
  */
 public class UnitTest5 {
 	
-	public static int NumRecs = 10;
+	public static int NumRecs = 100;
 	static final String TestName = "Unit Test 5: ";
 	
 	public static void main(String[] args) {
@@ -58,7 +58,6 @@ public class UnitTest5 {
 		
 		ofd = cfs.OpenFile("/" + dir1 + "/emp1", fh);
 		TinyRec r1 = new TinyRec();
-		
 		FSReturnVals retRR = crec.ReadLastRecord(fh, r1);
 		int cntr = 1;
 		ArrayList<RID> vect = new ArrayList<RID>();
